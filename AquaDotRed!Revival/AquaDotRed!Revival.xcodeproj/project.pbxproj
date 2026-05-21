@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		0FB117632FBEDA9C007EADA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0FB117482FBEDA9A007EADA8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FB1174F2FBEDA9A007EADA8;
+			remoteInfo = "AquaDotRed!Revival";
+		};
+		0FB1176D2FBEDA9C007EADA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0FB117482FBEDA9A007EADA8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FB1174F2FBEDA9A007EADA8;
+			remoteInfo = "AquaDotRed!Revival";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0FB117502FBEDA9A007EADA8 /* AquaDotRed!Revival.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AquaDotRed!Revival.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FB117622FBEDA9C007EADA8 /* AquaDotRed!RevivalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AquaDotRed!RevivalTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FB1176C2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AquaDotRed!RevivalUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		0FB117522FBEDA9A007EADA8 /* AquaDotRed!Revival */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "AquaDotRed!Revival";
+			sourceTree = "<group>";
+		};
+		0FB117652FBEDA9C007EADA8 /* AquaDotRed!RevivalTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "AquaDotRed!RevivalTests";
+			sourceTree = "<group>";
+		};
+		0FB1176F2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "AquaDotRed!RevivalUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0FB1174D2FBEDA9A007EADA8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB1175F2FBEDA9C007EADA8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB117692FBEDA9C007EADA8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0FB117472FBEDA9A007EADA8 = {
+			isa = PBXGroup;
+			children = (
+				0FB117522FBEDA9A007EADA8 /* AquaDotRed!Revival */,
+				0FB117652FBEDA9C007EADA8 /* AquaDotRed!RevivalTests */,
+				0FB1176F2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests */,
+				0FB117512FBEDA9A007EADA8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0FB117512FBEDA9A007EADA8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0FB117502FBEDA9A007EADA8 /* AquaDotRed!Revival.app */,
+				0FB117622FBEDA9C007EADA8 /* AquaDotRed!RevivalTests.xctest */,
+				0FB1176C2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0FB1174F2FBEDA9A007EADA8 /* AquaDotRed!Revival */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0FB117762FBEDA9C007EADA8 /* Build configuration list for PBXNativeTarget "AquaDotRed!Revival" */;
+			buildPhases = (
+				0FB1174C2FBEDA9A007EADA8 /* Sources */,
+				0FB1174D2FBEDA9A007EADA8 /* Frameworks */,
+				0FB1174E2FBEDA9A007EADA8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0FB117522FBEDA9A007EADA8 /* AquaDotRed!Revival */,
+			);
+			name = "AquaDotRed!Revival";
+			packageProductDependencies = (
+			);
+			productName = "AquaDotRed!Revival";
+			productReference = 0FB117502FBEDA9A007EADA8 /* AquaDotRed!Revival.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0FB117612FBEDA9C007EADA8 /* AquaDotRed!RevivalTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0FB117792FBEDA9C007EADA8 /* Build configuration list for PBXNativeTarget "AquaDotRed!RevivalTests" */;
+			buildPhases = (
+				0FB1175E2FBEDA9C007EADA8 /* Sources */,
+				0FB1175F2FBEDA9C007EADA8 /* Frameworks */,
+				0FB117602FBEDA9C007EADA8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0FB117642FBEDA9C007EADA8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0FB117652FBEDA9C007EADA8 /* AquaDotRed!RevivalTests */,
+			);
+			name = "AquaDotRed!RevivalTests";
+			packageProductDependencies = (
+			);
+			productName = "AquaDotRed!RevivalTests";
+			productReference = 0FB117622FBEDA9C007EADA8 /* AquaDotRed!RevivalTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		0FB1176B2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0FB1177C2FBEDA9C007EADA8 /* Build configuration list for PBXNativeTarget "AquaDotRed!RevivalUITests" */;
+			buildPhases = (
+				0FB117682FBEDA9C007EADA8 /* Sources */,
+				0FB117692FBEDA9C007EADA8 /* Frameworks */,
+				0FB1176A2FBEDA9C007EADA8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0FB1176E2FBEDA9C007EADA8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0FB1176F2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests */,
+			);
+			name = "AquaDotRed!RevivalUITests";
+			packageProductDependencies = (
+			);
+			productName = "AquaDotRed!RevivalUITests";
+			productReference = 0FB1176C2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0FB117482FBEDA9A007EADA8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					0FB1174F2FBEDA9A007EADA8 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					0FB117612FBEDA9C007EADA8 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 0FB1174F2FBEDA9A007EADA8;
+					};
+					0FB1176B2FBEDA9C007EADA8 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 0FB1174F2FBEDA9A007EADA8;
+					};
+				};
+			};
+			buildConfigurationList = 0FB1174B2FBEDA9A007EADA8 /* Build configuration list for PBXProject "AquaDotRed!Revival" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0FB117472FBEDA9A007EADA8;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0FB117512FBEDA9A007EADA8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0FB1174F2FBEDA9A007EADA8 /* AquaDotRed!Revival */,
+				0FB117612FBEDA9C007EADA8 /* AquaDotRed!RevivalTests */,
+				0FB1176B2FBEDA9C007EADA8 /* AquaDotRed!RevivalUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0FB1174E2FBEDA9A007EADA8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB117602FBEDA9C007EADA8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB1176A2FBEDA9C007EADA8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0FB1174C2FBEDA9A007EADA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB1175E2FBEDA9C007EADA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB117682FBEDA9C007EADA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0FB117642FBEDA9C007EADA8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FB1174F2FBEDA9A007EADA8 /* AquaDotRed!Revival */;
+			targetProxy = 0FB117632FBEDA9C007EADA8 /* PBXContainerItemProxy */;
+		};
+		0FB1176E2FBEDA9C007EADA8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FB1174F2FBEDA9A007EADA8 /* AquaDotRed!Revival */;
+			targetProxy = 0FB1176D2FBEDA9C007EADA8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0FB117742FBEDA9C007EADA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		0FB117752FBEDA9C007EADA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0FB117772FBEDA9C007EADA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"AquaDotRed!Revival/Preview Content\"";
+				DEVELOPMENT_TEAM = 66HNFXWR3Z;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "adamjvr.AquaDotRed-Revival";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0FB117782FBEDA9C007EADA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"AquaDotRed!Revival/Preview Content\"";
+				DEVELOPMENT_TEAM = 66HNFXWR3Z;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "adamjvr.AquaDotRed-Revival";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		0FB1177A2FBEDA9C007EADA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "adamjvr.AquaDotRed-RevivalTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AquaDotRed!Revival.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AquaDotRed!Revival";
+			};
+			name = Debug;
+		};
+		0FB1177B2FBEDA9C007EADA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "adamjvr.AquaDotRed-RevivalTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AquaDotRed!Revival.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AquaDotRed!Revival";
+			};
+			name = Release;
+		};
+		0FB1177D2FBEDA9C007EADA8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "adamjvr.AquaDotRed-RevivalUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "AquaDotRed!Revival";
+			};
+			name = Debug;
+		};
+		0FB1177E2FBEDA9C007EADA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "adamjvr.AquaDotRed-RevivalUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "AquaDotRed!Revival";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0FB1174B2FBEDA9A007EADA8 /* Build configuration list for PBXProject "AquaDotRed!Revival" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FB117742FBEDA9C007EADA8 /* Debug */,
+				0FB117752FBEDA9C007EADA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0FB117762FBEDA9C007EADA8 /* Build configuration list for PBXNativeTarget "AquaDotRed!Revival" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FB117772FBEDA9C007EADA8 /* Debug */,
+				0FB117782FBEDA9C007EADA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0FB117792FBEDA9C007EADA8 /* Build configuration list for PBXNativeTarget "AquaDotRed!RevivalTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FB1177A2FBEDA9C007EADA8 /* Debug */,
+				0FB1177B2FBEDA9C007EADA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0FB1177C2FBEDA9C007EADA8 /* Build configuration list for PBXNativeTarget "AquaDotRed!RevivalUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FB1177D2FBEDA9C007EADA8 /* Debug */,
+				0FB1177E2FBEDA9C007EADA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0FB117482FBEDA9A007EADA8 /* Project object */;
+}
