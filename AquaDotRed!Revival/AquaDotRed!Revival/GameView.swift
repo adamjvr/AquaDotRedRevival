@@ -5,12 +5,16 @@ struct GameView: View {
 
     var scene: SKScene {
         let scene = MazeGameScene()
-        scene.size = CGSize(width: 1024, height: 768)
+
+        // Wide canvas matching the reference-style layout:
+        // large rectangular maze, right stats strip, bottom HUD.
+        scene.size = CGSize(width: 1400, height: 900)
         scene.scaleMode = .aspectFit
+
         scene.backgroundColor = SKColor(
-            red: 0.02,
-            green: 0.04,
-            blue: 0.08,
+            red: 0.005,
+            green: 0.006,
+            blue: 0.012,
             alpha: 1.0
         )
 
