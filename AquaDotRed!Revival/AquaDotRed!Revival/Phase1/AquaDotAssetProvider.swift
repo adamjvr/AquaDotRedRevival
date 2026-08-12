@@ -1,48 +1,93 @@
+import Foundation
 import SpriteKit
 
-/// Stable bridge between game concepts and recovered/remastered texture sets.
-/// Remastered mode intentionally falls back to the original until a restored asset
-/// exists; no gameplay code knows which texture resolution is active.
+enum AquaDotPlayerAppearance: String, Sendable {
+    case normal = "Normal"
+    case munch = "Munch"
+    case yummy = "Yummy"
+    case yuk = "Yuk"
+    case damaged = "Damaged"
+}
+
+/// Phase 2 texture bridge. Every remastered texture is derived from recovered OG
+/// art; Original mode retains nearest-neighbor presentation of the preservation
+/// assets, while Remastered mode uses cleaned/high-resolution equivalents.
 struct AquaDotAssetProvider {
     let mode: AquaDotGraphicsMode
 
-    func playerTexture() -> SKTexture {
-        texture(original: "OG_Aquadot_Red", remastered: "RM_Aquadot_Red")
+    func playerTexture(appearance: AquaDotPlayerAppearance = .normal) -> SKTexture {
+        p2Texture(base: "P2_Player_\(appearance.rawValue)")
     }
 
-    func extraLifeTexture() -> SKTexture {
-        texture(original: "OG_Extra_Aquadot", remastered: "RM_Extra_Aquadot")
+    func bugTexture(personality: AquaDotBugPersonality) -> SKTexture {
+        let key: String
+        switch personality {
+        case .hunter: key = "Hunter"
+        case .blocker: key = "Blocker"
+        case .sneaker: key = "Sneaker"
+        case .houndDog: key = "HoundDog"
+        }
+        return p2Texture(base: "P2_Bug_\(key)")
     }
 
-    func basicDotTexture() -> SKTexture {
-        texture(original: "OG_Basic_Dot", remastered: "RM_Basic_Dot")
+    func dotTexture(kind: AquaDotDotKind) -> SKTexture {
+        switch kind {
+        case .normal:
+            return legacyTexture(original: "OG_Basic_Dot", remastered: "OG_Basic_Dot")
+        case .candy:
+            return p2Texture(base: "P2_Dot_Candy")
+        case .crusty:
+            return p2Texture(base: "P2_Dot_Crusty")
+        case .petrified:
+            return p2Texture(base: "P2_Dot_Petrified")
+        }
     }
 
     func munchDotTexture() -> SKTexture {
-        texture(original: "OG_Inert_Dot", remastered: "RM_Inert_Dot")
+        // Phase 2 renders the characteristic expanding/pulsing Munch ring in code;
+        // this recovered inert sprite is retained as Original-mode fallback.
+        legacyTexture(original: "OG_Inert_Dot", remastered: "OG_Inert_Dot")
+    }
+
+    func goodieTexture(kind: AquaDotGoodieKind, multiplier: Int = 2) -> SKTexture {
+        switch kind {
+        case .yummy: return p2Texture(base: "P2_Goodie_Yummy")
+        case .yuk: return p2Texture(base: "P2_Goodie_Yuk")
+        case .bonus: return p2Texture(base: "P2_Goodie_Bonus")
+        case .multiplier:
+            let clamped = max(2, min(5, multiplier))
+            return p2Texture(base: "P2_Goodie_Multiplier\(clamped)")
+        }
+    }
+
+    func extraLifeTexture() -> SKTexture {
+        legacyTexture(original: "OG_Extra_Aquadot", remastered: "OG_Extra_Aquadot")
     }
 
     func wrapTexture() -> SKTexture {
-        texture(original: "OG_Wraparound_Warp", remastered: "RM_Wraparound_Warp")
+        legacyTexture(original: "OG_Wraparound_Warp", remastered: "OG_Wraparound_Warp")
     }
 
     func statusPanelTexture() -> SKTexture {
-        texture(original: "OG_Status_Panel", remastered: "RM_Status_Panel")
+        legacyTexture(original: "OG_Status_Panel", remastered: "OG_Status_Panel")
     }
 
-    private func texture(original: String, remastered: String) -> SKTexture {
-        let requestedName = mode == .remastered ? remastered : original
-        let requested = SKTexture(imageNamed: requestedName)
+    func wallLineAtlasTexture(themeIndex: Int) -> SKTexture {
+        let clamped = max(1, min(13, themeIndex))
+        let texture = SKTexture(imageNamed: String(format: "P2_WallLineAtlas_%02d_Original", clamped))
+        texture.filteringMode = mode == .original ? .nearest : .linear
+        return texture
+    }
 
-        // Asset lookup failure produces an empty texture instead of nil. Until all
-        // RM_ assets exist, use the original explicitly as the authoritative source.
-        let texture: SKTexture
-        if mode == .remastered, requested.size() == .zero {
-            texture = SKTexture(imageNamed: original)
-        } else {
-            texture = requested
-        }
+    private func p2Texture(base: String) -> SKTexture {
+        let suffix = mode == .remastered ? "Remastered" : "Original"
+        let texture = SKTexture(imageNamed: "\(base)_\(suffix)")
+        texture.filteringMode = mode == .original ? .nearest : .linear
+        return texture
+    }
 
+    private func legacyTexture(original: String, remastered: String) -> SKTexture {
+        let texture = SKTexture(imageNamed: mode == .remastered ? remastered : original)
         texture.filteringMode = mode == .original ? .nearest : .linear
         return texture
     }

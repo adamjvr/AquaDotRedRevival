@@ -4,22 +4,23 @@ A native macOS + iPadOS remaster/reconstruction of **aquadot!red**, built from t
 
 This project is deliberately **not** an AquaDot-inspired reinterpretation. The recovered maze files, artwork, data formats, manuals, binary behavior, and original asset geometry are the source of truth. Modern Swift, SwiftUI, SpriteKit, Metal-backed rendering, Apple Silicon support, touch input, and modern platform APIs replace obsolete Carbon/SpriteWorld/OpenGL plumbing around that original design.
 
-## Current milestone: Phase 1 — Authentic Core Runtime
+## Current milestone: Phase 2 — OG-derived Remaster + Behavioral Reconstruction
 
-Phase 1 replaces the old hard-coded `TestLevels.levelOne` prototype path with a playable original-data runtime:
+Phase 1 established a playable authentic-data runtime. Phase 2 now makes that runtime visibly and mechanically AquaDot-specific:
 
-- all **205 recovered standard mazes** are preserved and included as untouched data assets;
-- the original Maze Description Format 1.0 is parsed directly;
-- the original CRC is verified before a level is accepted;
-- exact wall bit directions recovered from the editor are implemented (`N=0x8 E=0x1 S=0x2 W=0x4`);
-- the playable graph is reconstructed from original path vertices plus A-D wrap pairs;
-- player movement is graph-based and fixed-step;
-- normal dots and static Munch dots come from the original level data;
-- the original status-panel, AquaDot, dot, wrap, and related art is used by the SpriteKit renderer;
-- original graphical assets are kept intact in `preservation/` while runtime-ready derivatives remain traceable to them;
-- native Mac keyboard and iPad touch/hardware-keyboard input feed the same logical actions.
+- all **205 recovered standard mazes** remain untouched, CRC-verified source data;
+- the scalable wall renderer is driven by the exact recovered wall masks **and overlays the exact recovered original `(lines)`-atlas frame mapping** on its Retina-clean bevel body;
+- recovered AquaDot/player, bug, dot and goodie artwork is used as the authority for Original and restored Remastered assets, including direct recovered player-state colors for normal/Munch/Yummy/Yuk/damage;
+- the first four original bug color/personality roles are reconstructed as Hunter, Blocker, Sneaker and Hound Dog, assigned as a distinct roster to the E-H start slots and driven by the wrap-aware recovered maze graph;
+- Normal/Candy/Crusty/Petrified dots, Yummy/Yuk/Bonus/Multiplier goodies, special powers and Munch mode are implemented from the shipped strategy-guide behavior;
+- recovered scoring values, Munch bug values, multiplier behavior and extra-life thresholds are implemented;
+- all 81 original `.adrs` Ogg/Vorbis assets are preserved byte-for-byte; 44 Phase 2 runtime sounds are losslessly decoded to ALAC, including level music and every Yummy/Yuk special-power loop, for AVFoundation on modern Apple platforms;
+- Original (`O`) and Remastered (`R`) graphics modes share the exact same game simulation;
+- Mac keyboard and iPad touch/hardware-keyboard controls feed that same simulation.
 
-The default preservation test level is **Ewe (1)**. On Mac, use arrow keys or WASD. `[` and `]` step through the recovered standard maze catalog. The backtick key toggles the topology/wall-mask debug overlay.
+The default preservation test level remains **Ewe (1)**. Arrows/WASD move, Space activates an available Yummy power, P/Escape pauses, `[` and `]` cycle original mazes, and backtick toggles the reconstruction overlay.
+
+See [`docs/PHASE2_ARCHITECTURE.md`](docs/PHASE2_ARCHITECTURE.md) for the evidence boundary, renderer policy, dynamic dot rules and constants still awaiting exact binary timing matches.
 
 ## Architecture
 
@@ -48,7 +49,7 @@ AquaDotGameSimulation        platform-independent fixed-step rules
 
 The important rule is **file format != simulation != renderer**. Remastered textures must never change maze coordinates, collisions, pathfinding, or timing.
 
-See [`docs/PHASE1_ARCHITECTURE.md`](docs/PHASE1_ARCHITECTURE.md) for recovered wall semantics, topology evidence, current limitations, and validation results.
+See the Phase 1 and Phase 2 architecture documents under `docs/` for recovered wall semantics, topology evidence, behavior provenance, current limitations, and validation results.
 
 ## Preservation note
 

@@ -1,0 +1,107 @@
+{
+  "purpose": "Phase 2 runtime derivatives trace back to recovered original AquaDot material. Complete recovered graphics remain immutable in preservation/aquadot_graphical_assets.zip from Phase 1.",
+  "wall_line_atlas_note": "All 13 recovered per-theme (lines) atlases are combined with the recovered shared alpha mask for transparent runtime atlases. Frame selection uses the exact _drawLineIntersections mapping recovered from game disassembly.",
+  "remaster_policy": "Original mode keeps recovered-resolution authority/nearest filtering. Remastered derivatives use higher-resolution cleaned raster or scalable SpriteKit geometry without changing logical gameplay coordinates.",
+  "sources": [
+    {
+      "source": "originals/game_sprites/Play/Aquadot-Underlays.png",
+      "sha256": "0cf1675985f35b5f09874c2d9dbc9c497a8d821fa8e75c107ecfce107619c5ed"
+    },
+    {
+      "source": "originals/game_sprites/Play/Aquadot-Ring-Alphas.jpg",
+      "sha256": "f60dd30dfa09b24051c15363f341ec4c2d09b6a8067127d33bd96e7e1737bfa6"
+    },
+    {
+      "source": "originals/game_sprites/Play/Aquadot-Spots-Alpha.jpg",
+      "sha256": "748b98193437513eb090f8e372141be05937c5a6c587273862708cd463279fb6"
+    },
+    {
+      "source": "originals/game_sprites/Play/Bonus-Dots.png",
+      "sha256": "f628a792a34962b5fe514746d7265598ad8c2b5269b223f4121201db86b21a8e"
+    },
+    {
+      "source": "originals/game_sprites/Play/Good-Infected-Dot.png",
+      "sha256": "1c7fdb7b2690c0cff2554779f88b5473a4c5331de3ea53a8bd911281cbd6304f"
+    },
+    {
+      "source": "originals/game_sprites/Play/Infected-Dot.png",
+      "sha256": "f823a80d1a6339238a25b90af0242f3215f1e06098c97b7e180c5840d11f86aa"
+    },
+    {
+      "source": "originals/game_sprites/Play/Inert-Dot.png",
+      "sha256": "8c3861b1f9c5829302c6cd4cb45e46997012b0b8751341cdd044d94d54a338d1"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Alphas/Wall 001 (lines).gif",
+      "sha256": "25b9354ff1a56c6def9da6ac4298b68d2aa87596c688e108aa65277eb97fda1b"
+    },
+    {
+      "source": "documentation_embedded_graphics/Official_Strategy_Guide/page012_img001.png",
+      "sha256": "49b4024f3462e0ace863b9e751f7497938e2839fedb03d5b15f5cb0e0cc9feb4"
+    },
+    {
+      "source": "documentation_embedded_graphics/Official_Strategy_Guide/page012_img002.png",
+      "sha256": "ceb02365f97ece316edd0cbd3c0ca89f8db6755ec13861978035265d3df8b8bf"
+    },
+    {
+      "source": "documentation_embedded_graphics/Official_Strategy_Guide/page012_img003.png",
+      "sha256": "f919df6acedeb6ba800ed65ec709b012d21dd73ef873801714c41c9e2226ef1c"
+    },
+    {
+      "source": "documentation_embedded_graphics/Official_Strategy_Guide/page012_img004.png",
+      "sha256": "4942f7376871a0aaacf48ca4ba19bc04100058446ac131ff1728c7feabd2f89a"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 001/Wall 001 (lines).jpg",
+      "sha256": "12d9828b7a1cc6dbd12c6fcbb977fb63c33bdbd3686d7634e0a25f45d8420016"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 002/Wall 001 (lines).jpg",
+      "sha256": "a82def0c2c118bb5a2420f60cf933a857ac4fe2ace955f771aa40276d13e2a91"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 003/Wall 001 (lines).jpg",
+      "sha256": "e96f085e443e72ca4b60bc1573d36493b5391c61385c8949e72a2363fb2a65bd"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 004/Wall 001 (lines).jpg",
+      "sha256": "e5be99d47b9fac54944795864371c34d8fd5a7cf7ef21c8a388b8e173c411040"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 005/Wall 001 (lines).jpg",
+      "sha256": "c1542edeea5a0c308003b2dc97442c2969a05487646fa6913954e186774d6663"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 006/Wall 001 (lines).jpg",
+      "sha256": "c76c27bc88f106b2d3017ae77847f491b6cbdba084da469c66f59d62b0465b12"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 007/Wall 001 (lines).jpg",
+      "sha256": "be3160dffdeba14649b903d8e3a8867bc2706c6d5bb5fa09f516cf4be8911242"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 008/Wall 001 (lines).jpg",
+      "sha256": "997b8a8d1b2e8c2eff661660ec81b0787b3a814b5a3780c064b8581e6cdcc47d"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 009/Wall 001 (lines).jpg",
+      "sha256": "3cbb257d2b5be1fe82fb1f82751d6d89146d7637745d3efa1f0ac7ee44d6d1de"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 010/Wall 001 (lines).jpg",
+      "sha256": "d5eed4bec3aa807c727ed59cb1aabbfcc963cef914798bbe070c362e81bb2287"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 011/Wall 001 (lines).jpg",
+      "sha256": "8f07f3090b7682647706f023a53249e6bf4742f768a606fb3910dee1a90acd4d"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 012/Wall 001 (lines).jpg",
+      "sha256": "d5281cf91e67f9170d47c5bcdc775a01193fea2666a2d034cd7875dcef1923a6"
+    },
+    {
+      "source": "originals/game_sprites/Walls/Walls 013/Wall 001 (lines).jpg",
+      "sha256": "d957d8e49070c936e4629ece30b7526845b0862f74c7a1182294bc1d896110f4"
+    }
+  ]
+}
