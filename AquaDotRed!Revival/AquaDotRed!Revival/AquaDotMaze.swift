@@ -67,7 +67,7 @@ enum AquaDotVertexToken: Equatable {
         switch rawToken {
         case ":": self = .empty
         case ".": self = .path
-        case "•": self = .dot
+        case "•", "Î": self = .dot // Corelibs Foundation may decode MacRoman 0xA5 as Î; Apple platforms decode it as •.
         case "#": self = .munchDot
         case "S": self = .playerStart
         case "E", "F", "G", "H": self = .enemyStart(Character(rawToken))

@@ -1,561 +1,504 @@
+import Foundation
 import SpriteKit
 
-final class MazeGameScene: SKScene {
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
-    private let level = TestLevels.levelOne
+/// Phase 1 authentic AquaDot runtime.
+///
+/// This scene no longer consumes `TestLevels.levelOne`. It loads an untouched
+/// recovered AquaDot maze, verifies its original checksum, builds the recovered
+/// graph topology, runs platform-independent movement/collection, and renders the
+/// original game's assets over that state.
+final class MazeGameScene: SKScene, AquaDotInputSink {
+    private static let fixedStep: Double = 1.0 / 120.0
+    private static let maximumFrameDelta: Double = 0.10
 
-    private let tileSize: CGFloat = 34.0
+    private var session: AquaDotGameSession?
+    private var layout: AquaDotMazeLayout?
+    private var assets = AquaDotAssetProvider(mode: .original)
 
     private let mazeRoot = SKNode()
-    private let uiRoot = SKNode()
+    private let collectibleRoot = SKNode()
+    private let wrapRoot = SKNode()
+    private let playerRoot = SKNode()
+    private let hudRoot = SKNode()
+    private let debugRoot = SKNode()
+
+    private var playerNode: SKSpriteNode?
+    private var dotNodes: [GridPosition: SKNode] = [:]
+    private var munchNodes: [GridPosition: SKNode] = [:]
+    private var scoreLabel: SKLabelNode?
+    private var dotsLabel: SKLabelNode?
+    private var levelLabel: SKLabelNode?
+    private var crcLabel: SKLabelNode?
+
+    private var previousUpdateTime: TimeInterval?
+    private var accumulator: Double = 0
+    private var currentCatalogIndex: Int = 0
+    private var debugVisible = false
+
+    #if os(iOS)
+    private var touchStart: CGPoint?
+    #endif
 
     override func didMove(to view: SKView) {
+        backgroundColor = .black
+        anchorPoint = .zero
 
+        #if os(macOS)
+        view.window?.makeFirstResponder(view)
+        #endif
+
+        if let eweIndex = AquaDotOriginalLevelCatalog.standardLevels.firstIndex(where: { $0.originalName == "Ewe (1)" }) {
+            currentCatalogIndex = eweIndex
+        }
+        loadCatalogLevel(at: currentCatalogIndex)
+    }
+
+    // MARK: - Level/session lifecycle
+
+    private func loadCatalogLevel(at index: Int) {
+        let catalog = AquaDotOriginalLevelCatalog.standardLevels
+        guard !catalog.isEmpty else {
+            showFatalMessage("Recovered level catalog is empty")
+            return
+        }
+
+        currentCatalogIndex = (index % catalog.count + catalog.count) % catalog.count
+        let record = catalog[currentCatalogIndex]
+
+        do {
+            let loaded = try AquaDotLevelLoader().load(record: record)
+            let newSession = AquaDotGameSession(
+                levelRecord: record,
+                maze: loaded,
+                graphicsMode: .original
+            )
+            session = newSession
+            layout = AquaDotMazeLayout(maze: loaded)
+            assets = AquaDotAssetProvider(mode: newSession.graphicsMode)
+            previousUpdateTime = nil
+            accumulator = 0
+            rebuildScene()
+
+            print("AquaDot Phase 1: loaded original level '\(record.originalName)' \(loaded.width)x\(loaded.height), CRC \(loaded.storedChecksum) verified, graph connected=\(newSession.topology.isConnected)")
+        } catch {
+            showFatalMessage("Could not load original AquaDot level:\n\(error)")
+        }
+    }
+
+    private func rebuildScene() {
         removeAllChildren()
-
-        addChild(mazeRoot)
-        addChild(uiRoot)
-
-        renderBackground()
-        renderLevel()
-
-        layoutMazeRoot()
-
-        renderRightExtraPanel()
-        renderBottomHUD()
-    }
-
-    private func renderBackground() {
-
-        let background = SKShapeNode(
-            rect: CGRect(x: 0, y: 0, width: size.width, height: size.height),
-            cornerRadius: 0
-        )
-
-        background.fillColor = SKColor(
-            red: 0.0,
-            green: 0.0,
-            blue: 0.0,
-            alpha: 1.0
-        )
-
-        background.strokeColor = .clear
-        background.zPosition = -100
-
-        addChild(background)
-    }
-
-    private func renderLevel() {
-
-        renderPlayfieldBackground()
-        renderWalls()
-        renderDots()
-    }
-
-    private func renderPlayfieldBackground() {
-
-        let mazePixelWidth = CGFloat(level.gridWidth) * tileSize
-        let mazePixelHeight = CGFloat(level.gridHeight) * tileSize
-
-        let panel = SKShapeNode(
-            rect: CGRect(
-                x: 0,
-                y: 0,
-                width: mazePixelWidth,
-                height: mazePixelHeight
-            ),
-            cornerRadius: 18
-        )
-
-        panel.fillColor = SKColor(
-            red: 0.0,
-            green: 0.0,
-            blue: 0.0,
-            alpha: 1.0
-        )
-
-        panel.strokeColor = SKColor(
-            red: 1.0,
-            green: 0.02,
-            blue: 0.36,
-            alpha: 0.9
-        )
-
-        panel.lineWidth = 2.0
-        panel.glowWidth = 4.0
-        panel.zPosition = -20
-
-        mazeRoot.addChild(panel)
-    }
-
-    private func renderWalls() {
-
-        for y in 0..<level.gridHeight {
-            for x in 0..<level.gridWidth {
-
-                guard level.tileAt(x: x, y: y) == .wall else {
-                    continue
-                }
-
-                let wallNode = makeWallNode()
-                wallNode.position = pointForTile(x: x, y: y)
-                mazeRoot.addChild(wallNode)
-            }
-        }
-    }
-
-    private func renderDots() {
-
-        for dot in level.dots {
-
-            let dotNode = makeDotNode()
-            dotNode.position = pointForTile(x: dot.x, y: dot.y)
-            dotNode.zPosition = 5
-            mazeRoot.addChild(dotNode)
+        [mazeRoot, collectibleRoot, wrapRoot, playerRoot, hudRoot, debugRoot].forEach {
+            $0.removeAllChildren()
+            addChild($0)
         }
 
-        // A few larger bonus/power dots to match the original mockup feel.
-        let powerDotPositions = [
-            GridPosition(x: 2, y: 2),
-            GridPosition(x: level.gridWidth - 3, y: 2),
-            GridPosition(x: 2, y: level.gridHeight - 3),
-            GridPosition(x: level.gridWidth - 3, y: level.gridHeight - 3)
-        ]
+        dotNodes.removeAll(keepingCapacity: true)
+        munchNodes.removeAll(keepingCapacity: true)
 
-        for powerDot in powerDotPositions {
-            let node = makePowerDotNode()
-            node.position = pointForTile(x: powerDot.x, y: powerDot.y)
-            node.zPosition = 6
-            mazeRoot.addChild(node)
-        }
+        guard let session, let layout else { return }
+
+        renderOriginalMaze(session: session, layout: layout)
+        renderCollectibles(session: session, layout: layout)
+        renderWraps(session: session, layout: layout)
+        renderPlayer(session: session, layout: layout)
+        renderOriginalHUD(session: session)
+        renderDebugOverlay(session: session, layout: layout)
+        debugRoot.isHidden = !debugVisible
     }
 
-    private func makeWallNode() -> SKShapeNode {
-
-        let inset: CGFloat = 2.6
-
-        let rect = CGRect(
-            x: -tileSize / 2 + inset,
-            y: -tileSize / 2 + inset,
-            width: tileSize - inset * 2,
-            height: tileSize - inset * 2
-        )
-
-        let node = SKShapeNode(rect: rect, cornerRadius: 9)
-
-        node.fillColor = SKColor(
-            red: 1.0,
-            green: 0.02,
-            blue: 0.36,
-            alpha: 0.97
-        )
-
-        node.strokeColor = SKColor(
-            red: 1.0,
-            green: 0.50,
-            blue: 0.78,
-            alpha: 1.0
-        )
-
-        node.lineWidth = 1.7
-        node.glowWidth = 3.0
-        node.zPosition = 1
-
-        let highlight = SKShapeNode(
-            rect: CGRect(
-                x: rect.minX + 6,
-                y: rect.maxY - 9,
-                width: max(2, rect.width - 12),
-                height: 3.5
-            ),
-            cornerRadius: 2
-        )
-
-        highlight.fillColor = SKColor(
-            red: 1.0,
-            green: 0.82,
-            blue: 0.95,
-            alpha: 0.42
-        )
-
-        highlight.strokeColor = .clear
-        highlight.zPosition = 2
-        node.addChild(highlight)
-
-        return node
-    }
-
-    private func makeDotNode() -> SKShapeNode {
-
-        let node = SKShapeNode(circleOfRadius: 2.8)
-
-        node.fillColor = SKColor(
-            red: 0.96,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 1.0
-        )
-
-        node.strokeColor = SKColor(
-            red: 0.85,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 0.9
-        )
-
-        node.lineWidth = 0.8
-        node.glowWidth = 1.6
-
-        return node
-    }
-
-    private func makePowerDotNode() -> SKNode {
-
-        let root = SKNode()
-
-        let outer = SKShapeNode(circleOfRadius: 12)
-        outer.fillColor = SKColor(red: 1.0, green: 0.02, blue: 0.36, alpha: 0.95)
-        outer.strokeColor = SKColor(red: 1.0, green: 0.72, blue: 0.90, alpha: 1.0)
-        outer.lineWidth = 2.0
-        outer.glowWidth = 5.0
-
-        let inner = SKShapeNode(circleOfRadius: 4.5)
-        inner.fillColor = SKColor(red: 1.0, green: 0.65, blue: 0.88, alpha: 0.7)
-        inner.strokeColor = .clear
-        inner.position = CGPoint(x: -3.0, y: 4.0)
-
-        root.addChild(outer)
-        root.addChild(inner)
-
-        return root
-    }
-
-    private func renderRightExtraPanel() {
-
-        let panelX: CGFloat = 1240
-        let panelY: CGFloat = 185
-        let panelWidth: CGFloat = 110
-        let panelHeight: CGFloat = 610
-
-        let panel = makeNeonPanel(
-            rect: CGRect(x: panelX, y: panelY, width: panelWidth, height: panelHeight),
-            stroke: SKColor(red: 1.0, green: 0.02, blue: 0.36, alpha: 1.0),
-            glow: 5.0
-        )
-
-        uiRoot.addChild(panel)
-
-        let divider1 = makeHorizontalLine(x: panelX, y: panelY + panelHeight - 170, width: panelWidth)
-        let divider2 = makeHorizontalLine(x: panelX, y: panelY + panelHeight - 380, width: panelWidth)
-
-        uiRoot.addChild(divider1)
-        uiRoot.addChild(divider2)
-
-        let letters = ["e", "x", "t", "r", "a"]
-
-        for (index, letter) in letters.enumerated() {
-            let label = makeLabel(
-                text: letter,
-                fontSize: 38,
-                color: SKColor(red: 0.1, green: 1.0, blue: 1.0, alpha: 1.0),
-                alignment: .center
-            )
-
-            label.position = CGPoint(
-                x: panelX + panelWidth / 2,
-                y: panelY + panelHeight - 60 - CGFloat(index) * 34
-            )
-
-            uiRoot.addChild(label)
-        }
-
-        for index in 0..<4 {
-
-            let life = makeLifeIcon()
-
-            life.position = CGPoint(
-                x: panelX + panelWidth / 2,
-                y: panelY + panelHeight - 225 - CGFloat(index) * 58
-            )
-
-            uiRoot.addChild(life)
-        }
-    }
-
-    private func renderBottomHUD() {
-
-        let leftX: CGFloat = 40
-        let topY: CGFloat = 105
-        let rowHeight: CGFloat = 70
-        let labelWidth: CGFloat = 220
-        let meterWidth: CGFloat = 760
-
-        renderMeterRow(
-            title: "energy",
-            titleColor: SKColor(red: 0.1, green: 1.0, blue: 1.0, alpha: 1.0),
-            strokeColor: SKColor(red: 0.1, green: 1.0, blue: 1.0, alpha: 0.95),
-            waveColor: SKColor(red: 0.1, green: 1.0, blue: 1.0, alpha: 1.0),
-            x: leftX,
-            y: topY,
-            labelWidth: labelWidth,
-            meterWidth: meterWidth,
-            height: rowHeight
-        )
-
-        renderMeterRow(
-            title: "energetic",
-            titleColor: SKColor(red: 1.0, green: 0.08, blue: 0.18, alpha: 1.0),
-            strokeColor: SKColor(red: 1.0, green: 0.02, blue: 0.36, alpha: 0.95),
-            waveColor: SKColor(red: 1.0, green: 0.0, blue: 0.05, alpha: 1.0),
-            x: leftX,
-            y: 30,
-            labelWidth: labelWidth,
-            meterWidth: meterWidth,
-            height: rowHeight
-        )
-
-        renderScorePanel(
-            title: "score",
-            value: "178 702",
-            x: 1030,
-            y: topY,
-            width: 330,
-            height: rowHeight
-        )
-
-        renderScorePanel(
-            title: "bonus",
-            value: "5x 1 447",
-            x: 1030,
-            y: 30,
-            width: 330,
-            height: rowHeight
-        )
-    }
-
-    private func renderMeterRow(
-        title: String,
-        titleColor: SKColor,
-        strokeColor: SKColor,
-        waveColor: SKColor,
-        x: CGFloat,
-        y: CGFloat,
-        labelWidth: CGFloat,
-        meterWidth: CGFloat,
-        height: CGFloat
-    ) {
-
-        let labelPanel = makeNeonPanel(
-            rect: CGRect(x: x, y: y, width: labelWidth, height: height),
-            stroke: strokeColor,
-            glow: 4.0
-        )
-
-        uiRoot.addChild(labelPanel)
-
-        let titleLabel = makeLabel(
-            text: title,
-            fontSize: 30,
-            color: titleColor,
-            alignment: .center
-        )
-
-        titleLabel.position = CGPoint(x: x + labelWidth / 2, y: y + 22)
-        uiRoot.addChild(titleLabel)
-
-        let meterPanel = makeNeonPanel(
-            rect: CGRect(x: x + labelWidth, y: y, width: meterWidth, height: height),
-            stroke: strokeColor,
-            glow: 4.0
-        )
-
-        uiRoot.addChild(meterPanel)
-
-        let wave = makeWaveNode(
-            x: x + labelWidth + 18,
-            y: y + height / 2,
-            width: meterWidth - 36,
-            amplitude: 12,
-            wavelength: 86,
-            color: waveColor
-        )
-
-        uiRoot.addChild(wave)
-    }
-
-    private func renderScorePanel(
-        title: String,
-        value: String,
-        x: CGFloat,
-        y: CGFloat,
-        width: CGFloat,
-        height: CGFloat
-    ) {
-
-        let panel = makeNeonPanel(
-            rect: CGRect(x: x, y: y, width: width, height: height),
-            stroke: SKColor(red: 0.1, green: 1.0, blue: 1.0, alpha: 0.95),
-            glow: 4.0
-        )
-
-        uiRoot.addChild(panel)
-
-        let titleLabel = makeLabel(
-            text: title,
-            fontSize: 28,
-            color: SKColor(red: 0.25, green: 1.0, blue: 0.25, alpha: 1.0),
-            alignment: .left
-        )
-
-        titleLabel.position = CGPoint(x: x + 26, y: y + 22)
-        uiRoot.addChild(titleLabel)
-
-        let valueLabel = makeLabel(
-            text: value,
-            fontSize: 28,
-            color: SKColor(red: 0.25, green: 1.0, blue: 0.25, alpha: 1.0),
-            alignment: .right
-        )
-
-        valueLabel.position = CGPoint(x: x + width - 28, y: y + 22)
-        uiRoot.addChild(valueLabel)
-    }
-
-    private func makeNeonPanel(rect: CGRect, stroke: SKColor, glow: CGFloat) -> SKShapeNode {
-
-        let panel = SKShapeNode(rect: rect, cornerRadius: 18)
-
-        panel.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.82)
-        panel.strokeColor = stroke
-        panel.lineWidth = 2.0
-        panel.glowWidth = glow
-        panel.zPosition = 30
-
-        return panel
-    }
-
-    private func makeHorizontalLine(x: CGFloat, y: CGFloat, width: CGFloat) -> SKShapeNode {
-
-        let path = CGMutablePath()
-        path.move(to: CGPoint(x: x, y: y))
-        path.addLine(to: CGPoint(x: x + width, y: y))
-
-        let line = SKShapeNode(path: path)
-        line.strokeColor = SKColor(red: 1.0, green: 0.02, blue: 0.36, alpha: 1.0)
-        line.lineWidth = 2.0
-        line.glowWidth = 4.0
-        line.zPosition = 35
-
-        return line
-    }
-
-    private func makeWaveNode(
-        x: CGFloat,
-        y: CGFloat,
-        width: CGFloat,
-        amplitude: CGFloat,
-        wavelength: CGFloat,
-        color: SKColor
-    ) -> SKShapeNode {
-
-        let path = CGMutablePath()
-
-        let steps = 160
-
-        for index in 0...steps {
-
-            let t = CGFloat(index) / CGFloat(steps)
-            let px = x + t * width
-            let py = y + sin(t * width / wavelength * CGFloat.pi * 2.0) * amplitude
-
-            if index == 0 {
-                path.move(to: CGPoint(x: px, y: py))
-            } else {
-                path.addLine(to: CGPoint(x: px, y: py))
-            }
-        }
-
-        let node = SKShapeNode(path: path)
-
-        node.strokeColor = color
-        node.lineWidth = 5.0
-        node.glowWidth = 5.0
-        node.lineCap = .round
-        node.zPosition = 40
-
-        return node
-    }
-
-    private func makeLifeIcon() -> SKNode {
-
-        let root = SKNode()
-
-        let circle = SKShapeNode(circleOfRadius: 23)
-        circle.fillColor = SKColor(red: 1.0, green: 0.14, blue: 0.18, alpha: 1.0)
-        circle.strokeColor = SKColor(red: 1.0, green: 0.95, blue: 0.95, alpha: 1.0)
-        circle.lineWidth = 2.0
-        circle.glowWidth = 3.0
-
-        root.addChild(circle)
-
-        let spotPositions = [
-            CGPoint(x: -7, y: 8),
-            CGPoint(x: 8, y: 9),
-            CGPoint(x: -10, y: -7),
-            CGPoint(x: 8, y: -8)
-        ]
-
-        for position in spotPositions {
-            let spot = SKShapeNode(circleOfRadius: 6)
-            spot.position = position
-            spot.fillColor = SKColor.white
-            spot.strokeColor = .clear
-            root.addChild(spot)
-        }
-
-        return root
-    }
-
-    private func makeLabel(
-        text: String,
-        fontSize: CGFloat,
-        color: SKColor,
-        alignment: SKLabelHorizontalAlignmentMode
-    ) -> SKLabelNode {
-
-        let label = SKLabelNode(fontNamed: "MarkerFelt-Thin")
+    private func showFatalMessage(_ text: String) {
+        removeAllChildren()
+        let label = SKLabelNode(fontNamed: "Menlo-Bold")
         label.text = text
-        label.fontSize = fontSize
-        label.fontColor = color
-        label.horizontalAlignmentMode = alignment
-        label.verticalAlignmentMode = .baseline
-        label.zPosition = 50
+        label.numberOfLines = 0
+        label.preferredMaxLayoutWidth = max(300, size.width - 80)
+        label.fontSize = 16
+        label.fontColor = .red
+        label.horizontalAlignmentMode = .center
+        label.verticalAlignmentMode = .center
+        label.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        addChild(label)
+        print("AquaDot Phase 1 ERROR: \(text)")
+    }
 
+    // MARK: - Authentic maze rendering
+
+    private func renderOriginalMaze(session: AquaDotGameSession, layout: AquaDotMazeLayout) {
+        // The original game colorized grayscale/beveled wall sprite themes. Until
+        // the exact 9w/10w sprite-piece selection table is fully mapped, Phase 1
+        // uses the *recovered exact wall masks* and matches the green beveled look
+        // visible in the shipped strategy-guide gameplay captures.
+        for cell in session.topology.wallCells {
+            switch cell.kind {
+            case .open, .wrapBoundary, .unknown:
+                break
+
+            case .blocked:
+                let center = layout.wallCellCenter(x: cell.x, y: cell.y)
+                let outer = SKShapeNode(
+                    rectOf: CGSize(width: layout.pitch + 1, height: layout.pitch + 1),
+                    cornerRadius: 2.5
+                )
+                outer.position = center
+                outer.fillColor = SKColor(red: 0.04, green: 0.43, blue: 0.02, alpha: 1)
+                outer.strokeColor = .clear
+                outer.zPosition = 0
+                mazeRoot.addChild(outer)
+
+                let highlight = SKShapeNode(
+                    rectOf: CGSize(width: max(1, layout.pitch - 7), height: max(1, layout.pitch - 7)),
+                    cornerRadius: 3
+                )
+                highlight.position = CGPoint(x: center.x - 1.5, y: center.y + 1.5)
+                highlight.fillColor = SKColor(red: 0.18, green: 0.80, blue: 0.08, alpha: 0.72)
+                highlight.strokeColor = .clear
+                highlight.zPosition = 0.1
+                mazeRoot.addChild(highlight)
+
+            case let .wall(geometry):
+                renderWallGeometry(geometry, center: layout.wallCellCenter(x: cell.x, y: cell.y), pitch: layout.pitch)
+            }
+        }
+    }
+
+    private func renderWallGeometry(_ geometry: AquaDotWallGeometry, center: CGPoint, pitch: CGFloat) {
+        let path = CGMutablePath()
+        let half = pitch / 2 + 0.75
+
+        func branch(to point: CGPoint) {
+            path.move(to: center)
+            path.addLine(to: point)
+        }
+
+        if geometry.contains(.north) { branch(to: CGPoint(x: center.x, y: center.y + half)) }
+        if geometry.contains(.east)  { branch(to: CGPoint(x: center.x + half, y: center.y)) }
+        if geometry.contains(.south) { branch(to: CGPoint(x: center.x, y: center.y - half)) }
+        if geometry.contains(.west)  { branch(to: CGPoint(x: center.x - half, y: center.y)) }
+
+        let shadow = SKShapeNode(path: path)
+        shadow.strokeColor = SKColor(red: 0.015, green: 0.25, blue: 0.01, alpha: 1)
+        shadow.lineWidth = 11
+        shadow.lineCap = .round
+        shadow.lineJoin = .round
+        shadow.zPosition = 1
+        mazeRoot.addChild(shadow)
+
+        let body = SKShapeNode(path: path)
+        body.strokeColor = SKColor(red: 0.07, green: 0.67, blue: 0.025, alpha: 1)
+        body.lineWidth = 8
+        body.lineCap = .round
+        body.lineJoin = .round
+        body.zPosition = 1.1
+        mazeRoot.addChild(body)
+
+        let highlight = SKShapeNode(path: path)
+        highlight.strokeColor = SKColor(red: 0.30, green: 0.92, blue: 0.12, alpha: 0.55)
+        highlight.lineWidth = 2
+        highlight.lineCap = .round
+        highlight.lineJoin = .round
+        highlight.position = CGPoint(x: -1, y: 1)
+        highlight.zPosition = 1.2
+        mazeRoot.addChild(highlight)
+    }
+
+    private func renderCollectibles(session: AquaDotGameSession, layout: AquaDotMazeLayout) {
+        let dotTexture = assets.basicDotTexture()
+        let munchTexture = assets.munchDotTexture()
+
+        for position in session.state.remainingDots {
+            let node = SKSpriteNode(texture: dotTexture)
+            node.size = CGSize(width: 8, height: 8)
+            node.position = layout.point(for: position)
+            node.zPosition = 10
+            collectibleRoot.addChild(node)
+            dotNodes[position] = node
+        }
+
+        for position in session.state.remainingMunchDots {
+            let node = SKSpriteNode(texture: munchTexture)
+            node.size = CGSize(width: 16, height: 16)
+            node.position = layout.point(for: position)
+            node.zPosition = 11
+            collectibleRoot.addChild(node)
+            munchNodes[position] = node
+        }
+    }
+
+    private func renderWraps(session: AquaDotGameSession, layout: AquaDotMazeLayout) {
+        let texture = assets.wrapTexture()
+        for pair in session.topology.wrapPairs {
+            for endpoint in [pair.first, pair.second] {
+                let node = SKSpriteNode(texture: texture)
+                node.size = CGSize(width: 32, height: 32)
+                node.position = layout.point(for: endpoint)
+                node.alpha = 0.72
+                node.zPosition = 8
+                wrapRoot.addChild(node)
+            }
+        }
+    }
+
+    private func renderPlayer(session: AquaDotGameSession, layout: AquaDotMazeLayout) {
+        let node = SKSpriteNode(texture: assets.playerTexture())
+        node.size = CGSize(width: 30, height: 30)
+        node.position = layout.point(for: session.state.player.renderPosition())
+        node.zPosition = 30
+        playerRoot.addChild(node)
+        playerNode = node
+    }
+
+    // MARK: - Original HUD foundation
+
+    private func renderOriginalHUD(session: AquaDotGameSession) {
+        let panel = SKSpriteNode(texture: assets.statusPanelTexture())
+        panel.size = CGSize(width: 800, height: 50)
+        panel.position = CGPoint(x: 400, y: 25)
+        panel.zPosition = 100
+        hudRoot.addChild(panel)
+
+        let energy = makeHUDLabel("energy", color: SKColor(red: 1, green: 0.95, blue: 0.10, alpha: 1), size: 16)
+        energy.position = CGPoint(x: 128, y: 35)
+        hudRoot.addChild(energy)
+
+        let quick = makeHUDLabel("quick", color: SKColor(red: 1, green: 0.05, blue: 0.12, alpha: 1), size: 16)
+        quick.position = CGPoint(x: 128, y: 10)
+        hudRoot.addChild(quick)
+
+        renderWave(y: 36, color: SKColor(red: 1, green: 0.96, blue: 0.02, alpha: 1), phase: 0)
+        renderWave(y: 11, color: SKColor(red: 1, green: 0.02, blue: 0.06, alpha: 1), phase: .pi / 2)
+
+        let score = makeHUDLabel("", color: SKColor(red: 0.34, green: 1, blue: 0.24, alpha: 1), size: 13)
+        score.horizontalAlignmentMode = .right
+        score.position = CGPoint(x: 786, y: 35)
+        hudRoot.addChild(score)
+        scoreLabel = score
+
+        let dots = makeHUDLabel("", color: SKColor(red: 0.34, green: 1, blue: 0.24, alpha: 1), size: 13)
+        dots.horizontalAlignmentMode = .right
+        dots.position = CGPoint(x: 786, y: 10)
+        hudRoot.addChild(dots)
+        dotsLabel = dots
+
+        let level = makeHUDLabel("", color: SKColor(red: 0.65, green: 0.95, blue: 1, alpha: 1), size: 11)
+        level.horizontalAlignmentMode = .left
+        level.position = CGPoint(x: 160, y: 57)
+        hudRoot.addChild(level)
+        levelLabel = level
+
+        let crc = makeHUDLabel("", color: SKColor(red: 0.45, green: 0.75, blue: 0.78, alpha: 1), size: 9)
+        crc.horizontalAlignmentMode = .right
+        crc.position = CGPoint(x: 790, y: 57)
+        hudRoot.addChild(crc)
+        crcLabel = crc
+
+        refreshHUD(session: session)
+    }
+
+    private func makeHUDLabel(_ text: String, color: SKColor, size: CGFloat) -> SKLabelNode {
+        let label = SKLabelNode(fontNamed: "Helvetica-BoldOblique")
+        label.text = text
+        label.fontSize = size
+        label.fontColor = color
+        label.verticalAlignmentMode = .center
+        label.zPosition = 110
         return label
     }
 
-    private func pointForTile(x: Int, y: Int) -> CGPoint {
-
-        let sceneX = CGFloat(x) * tileSize + tileSize / 2
-        let flippedY = level.gridHeight - 1 - y
-        let sceneY = CGFloat(flippedY) * tileSize + tileSize / 2
-
-        return CGPoint(x: sceneX, y: sceneY)
+    private func renderWave(y: CGFloat, color: SKColor, phase: CGFloat) {
+        let path = CGMutablePath()
+        let startX: CGFloat = 170
+        let endX: CGFloat = 603
+        let samples = 96
+        for i in 0...samples {
+            let t = CGFloat(i) / CGFloat(samples)
+            let x = startX + (endX - startX) * t
+            let waveY = y + sin(t * 8 * .pi + phase) * 5
+            if i == 0 { path.move(to: CGPoint(x: x, y: waveY)) }
+            else { path.addLine(to: CGPoint(x: x, y: waveY)) }
+        }
+        let node = SKShapeNode(path: path)
+        node.strokeColor = color
+        node.lineWidth = 2.5
+        node.glowWidth = 1.2
+        node.zPosition = 109
+        hudRoot.addChild(node)
     }
 
-    private func layoutMazeRoot() {
-
-        let mazePixelWidth = CGFloat(level.gridWidth) * tileSize
-        let mazePixelHeight = CGFloat(level.gridHeight) * tileSize
-
-        // Layout reserved for:
-        // - right panel around x 1240
-        // - bottom HUD below y 180
-        //
-        // Maze gets positioned in the upper-left main play area.
-        mazeRoot.position = CGPoint(
-            x: 40,
-            y: 175 + (650 - mazePixelHeight) / 2
-        )
+    private func refreshHUD(session: AquaDotGameSession) {
+        scoreLabel?.text = "score  \(session.state.score)"
+        dotsLabel?.text = session.state.levelCompleted ? "maze clear" : "dots  \(session.state.remainingCollectibleCount)"
+        levelLabel?.text = "\(session.levelRecord.originalName)   [ / ] changes original maze"
+        crcLabel?.text = "original CRC \(session.maze.storedChecksum) ✓"
     }
+
+    // MARK: - Debug preservation overlay
+
+    private func renderDebugOverlay(session: AquaDotGameSession, layout: AquaDotMazeLayout) {
+        for position in session.topology.traversable {
+            let node = SKShapeNode(circleOfRadius: 1.6)
+            node.fillColor = .cyan
+            node.strokeColor = .clear
+            node.position = layout.point(for: position)
+            node.zPosition = 200
+            debugRoot.addChild(node)
+        }
+
+        for cell in session.topology.wallCells {
+            guard case let .wall(mask) = cell.kind else { continue }
+            let label = SKLabelNode(fontNamed: "Menlo")
+            label.text = String(format: "%X", mask.rawValue)
+            label.fontSize = 5.5
+            label.fontColor = SKColor.white.withAlphaComponent(0.7)
+            label.verticalAlignmentMode = .center
+            label.horizontalAlignmentMode = .center
+            label.position = layout.wallCellCenter(x: cell.x, y: cell.y)
+            label.zPosition = 210
+            debugRoot.addChild(label)
+        }
+
+        for start in session.topology.enemyStarts {
+            let label = SKLabelNode(fontNamed: "Menlo-Bold")
+            label.text = String(start.id)
+            label.fontSize = 9
+            label.fontColor = .magenta
+            label.position = layout.point(for: start.position)
+            label.zPosition = 220
+            debugRoot.addChild(label)
+        }
+    }
+
+    private func toggleDebugOverlay() {
+        debugVisible.toggle()
+        debugRoot.isHidden = !debugVisible
+    }
+
+    // MARK: - Fixed-step simulation
+
+    override func update(_ currentTime: TimeInterval) {
+        guard let session, let layout else { return }
+
+        guard let previousUpdateTime else {
+            self.previousUpdateTime = currentTime
+            return
+        }
+
+        let frameDelta = min(Self.maximumFrameDelta, max(0, currentTime - previousUpdateTime))
+        self.previousUpdateTime = currentTime
+        accumulator += frameDelta
+
+        while accumulator >= Self.fixedStep {
+            session.simulation.step(deltaTime: Self.fixedStep)
+            accumulator -= Self.fixedStep
+        }
+
+        playerNode?.position = layout.point(for: session.state.player.renderPosition())
+        synchronizeCollectibles(with: session.state)
+        refreshHUD(session: session)
+    }
+
+    private func synchronizeCollectibles(with state: AquaDotGameState) {
+        let eatenDots = dotNodes.keys.filter { !state.remainingDots.contains($0) }
+        for position in eatenDots {
+            dotNodes.removeValue(forKey: position)?.removeFromParent()
+        }
+
+        let eatenMunchDots = munchNodes.keys.filter { !state.remainingMunchDots.contains($0) }
+        for position in eatenMunchDots {
+            munchNodes.removeValue(forKey: position)?.removeFromParent()
+        }
+    }
+
+    // MARK: - Unified input boundary
+
+    func handleAquaDotInput(_ event: AquaDotInputEvent) {
+        guard event.isPressed, let session else { return }
+
+        if let direction = event.action.movementDirection {
+            session.simulation.request(direction)
+            return
+        }
+
+        if event.action == .pause {
+            session.simulation.togglePause()
+        }
+    }
+
+    private func send(_ action: AquaDotInputAction, source: AquaDotInputSource) {
+        handleAquaDotInput(AquaDotInputEvent(action: action, isPressed: true, source: source))
+    }
+
+    #if os(macOS)
+    override func keyDown(with event: NSEvent) {
+        let chars = event.charactersIgnoringModifiers?.lowercased() ?? ""
+
+        switch event.keyCode {
+        case 126: send(.moveUp, source: .keyboard)
+        case 124: send(.moveRight, source: .keyboard)
+        case 125: send(.moveDown, source: .keyboard)
+        case 123: send(.moveLeft, source: .keyboard)
+        case 49: send(.pause, source: .keyboard)
+        default:
+            switch chars {
+            case "w": send(.moveUp, source: .keyboard)
+            case "d": send(.moveRight, source: .keyboard)
+            case "s": send(.moveDown, source: .keyboard)
+            case "a": send(.moveLeft, source: .keyboard)
+            case "p": send(.pause, source: .keyboard)
+            case "`": toggleDebugOverlay()
+            case "[": loadCatalogLevel(at: currentCatalogIndex - 1)
+            case "]": loadCatalogLevel(at: currentCatalogIndex + 1)
+            default: super.keyDown(with: event)
+            }
+        }
+    }
+    #endif
+
+    #if os(iOS)
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchStart = touches.first?.location(in: self)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let start = touchStart, let end = touches.first?.location(in: self) else { return }
+        touchStart = nil
+
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        guard max(abs(dx), abs(dy)) >= 12 else { return }
+
+        if abs(dx) > abs(dy) {
+            send(dx > 0 ? .moveRight : .moveLeft, source: .touch)
+        } else {
+            send(dy > 0 ? .moveUp : .moveDown, source: .touch)
+        }
+    }
+
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var handled = false
+        for press in presses {
+            guard let key = press.key else { continue }
+            switch key.keyCode {
+            case .keyboardUpArrow, .keyboardW:
+                send(.moveUp, source: .keyboard); handled = true
+            case .keyboardRightArrow, .keyboardD:
+                send(.moveRight, source: .keyboard); handled = true
+            case .keyboardDownArrow, .keyboardS:
+                send(.moveDown, source: .keyboard); handled = true
+            case .keyboardLeftArrow, .keyboardA:
+                send(.moveLeft, source: .keyboard); handled = true
+            case .keyboardSpacebar, .keyboardP:
+                send(.pause, source: .keyboard); handled = true
+            default:
+                break
+            }
+        }
+        if !handled { super.pressesBegan(presses, with: event) }
+    }
+    #endif
 }

@@ -1,0 +1,2056 @@
+{
+  "format": "AquaDot original standard level catalog",
+  "count": 205,
+  "records": [
+    {
+      "index": 1,
+      "name": "Bad Fish (1)",
+      "resource": "ADL_001_Bad_Fish_1",
+      "checksum": 57145,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "651efb743966fde7be38153971cbb07d1fa0e502edd4fd67ab0f838fedfa8782"
+    },
+    {
+      "index": 2,
+      "name": "Bad Fish (2)",
+      "resource": "ADL_002_Bad_Fish_2",
+      "checksum": 9832,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "cfe13ba57f1addc30fa05379caca140ccb5e204cec8c2f242b66473659ac5285"
+    },
+    {
+      "index": 3,
+      "name": "Bad Fish (3)",
+      "resource": "ADL_003_Bad_Fish_3",
+      "checksum": 9334,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "097b94c866c2d2178993ea2eadebf9f23b6b3b342ca41b5afa2b11a01a8a73eb"
+    },
+    {
+      "index": 4,
+      "name": "Bad Fish (4)",
+      "resource": "ADL_004_Bad_Fish_4",
+      "checksum": 12091,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "2c2c40b4126fbecffb1e989e259ce8f1db67b39afc33de589814862ba43f2458"
+    },
+    {
+      "index": 5,
+      "name": "Bad Fish (5)",
+      "resource": "ADL_005_Bad_Fish_5",
+      "checksum": 15939,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "2a08322e2d6bb15a3416acdd3e607a5adbb8ded0b029a192697a112267e90769"
+    },
+    {
+      "index": 6,
+      "name": "Bolt (1)",
+      "resource": "ADL_006_Bolt_1",
+      "checksum": 23090,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "290337f2e9adbeb7dac850336ffd12f87db8e101f8e20ca3cc31b609396bc209"
+    },
+    {
+      "index": 7,
+      "name": "Bolt (2)",
+      "resource": "ADL_007_Bolt_2",
+      "checksum": 13681,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "77fadb123d2222545baafe202786221d990ba840bd764ab2e5875fee13b769ef"
+    },
+    {
+      "index": 8,
+      "name": "Bolt (3)",
+      "resource": "ADL_008_Bolt_3",
+      "checksum": 64009,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "dba3d851882d7c4668c094140120711720b4e8a681d21c5a08d8336b956904b1"
+    },
+    {
+      "index": 9,
+      "name": "Bolt (4)",
+      "resource": "ADL_009_Bolt_4",
+      "checksum": 41196,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "1a2bbad026bad3a806275b99277881fbe872b0a05125e84676565069c7380f0a"
+    },
+    {
+      "index": 10,
+      "name": "Bolt (5)",
+      "resource": "ADL_010_Bolt_5",
+      "checksum": 39813,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "468b6d925c947b8d7d219ebd6d9a901b4e4f0752c111a5395a5962b1230f9ba5"
+    },
+    {
+      "index": 11,
+      "name": "Chunky (1)",
+      "resource": "ADL_011_Chunky_1",
+      "checksum": 8316,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "40671aa01312f1758698ae03017930a66dcb746d2b637c73ce1b6f772786d4eb"
+    },
+    {
+      "index": 12,
+      "name": "Chunky (2)",
+      "resource": "ADL_012_Chunky_2",
+      "checksum": 5492,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "7a0c5ed0d55256dddad8257873300f95d372720c733463b3134d99272dca9702"
+    },
+    {
+      "index": 13,
+      "name": "Chunky (3)",
+      "resource": "ADL_013_Chunky_3",
+      "checksum": 34737,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "6572b65ea134163c462913971f79e7028c6085a0335c30d2b5f251212da7355f"
+    },
+    {
+      "index": 14,
+      "name": "Chunky (4)",
+      "resource": "ADL_014_Chunky_4",
+      "checksum": 56258,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "29701b55be44857bdb45481a01025a585bb5be89cd87883af3678deb93262eda"
+    },
+    {
+      "index": 15,
+      "name": "Chunky (5)",
+      "resource": "ADL_015_Chunky_5",
+      "checksum": 21600,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "253aa03e2a848a1b513635bf8d2e61b420db2f3b328fe7fe6f8512fd743dc0f0"
+    },
+    {
+      "index": 16,
+      "name": "Combacat (1)",
+      "resource": "ADL_016_Combacat_1",
+      "checksum": 27434,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "90ab133125be97fd1a8abb719142f0b50403df4d65555fb921b7b6b107770cd4"
+    },
+    {
+      "index": 17,
+      "name": "Combacat (2)",
+      "resource": "ADL_017_Combacat_2",
+      "checksum": 10046,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "b0ef1442c2fd290e126b2cf6ea014f929280990ddd33893759efb2343d5e688f"
+    },
+    {
+      "index": 18,
+      "name": "Combacat (3)",
+      "resource": "ADL_018_Combacat_3",
+      "checksum": 44424,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "099e839df1249168aa77f251e7c45bbdd6b597d177d8613304624a1f6a4ff0c6"
+    },
+    {
+      "index": 19,
+      "name": "Combacat (4)",
+      "resource": "ADL_019_Combacat_4",
+      "checksum": 11325,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "531f09b73841d5eda5db054033d090219853d64930dd4b33d85774c142c666c0"
+    },
+    {
+      "index": 20,
+      "name": "Combacat (5)",
+      "resource": "ADL_020_Combacat_5",
+      "checksum": 18951,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "dabd9a486e548dd297dd8c591236b16b8d00d44f3bb55ab74fd6dfa2d5f5ec98"
+    },
+    {
+      "index": 21,
+      "name": "Dividend (1)",
+      "resource": "ADL_021_Dividend_1",
+      "checksum": 58229,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "aded2efad6289530dc63df84b1c0f959d47091236fd374f89c104e95372750fc"
+    },
+    {
+      "index": 22,
+      "name": "Dividend (2)",
+      "resource": "ADL_022_Dividend_2",
+      "checksum": 39715,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "cf1e01cbc9387a62f9f3bd6639023a4256293929cfca459791bf9ca3b4fd08de"
+    },
+    {
+      "index": 23,
+      "name": "Dividend (3)",
+      "resource": "ADL_023_Dividend_3",
+      "checksum": 2451,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "69bdd2e3aa4a60da592cb5cb48e486dfbc189a1f7fc9cd7394d516f1db902ee0"
+    },
+    {
+      "index": 24,
+      "name": "Dividend (4)",
+      "resource": "ADL_024_Dividend_4",
+      "checksum": 43418,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "42810287bb3637f3efcccb8efbba2e1d6e5e4e88bda0fe466c67f6caf7f7cc5f"
+    },
+    {
+      "index": 25,
+      "name": "Dividend (5)",
+      "resource": "ADL_025_Dividend_5",
+      "checksum": 22245,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "320e03bb9f96ee0b7a0c98cb4be4817ea9585d70906c6b04e91879a568aa3684"
+    },
+    {
+      "index": 26,
+      "name": "Duality (1)",
+      "resource": "ADL_026_Duality_1",
+      "checksum": 54511,
+      "width": 27,
+      "height": 30,
+      "bytes": 8446,
+      "sha256": "81845164da7cd4c00e0e9e864793199cc2dbf0d8bd18106afe04491ebe7f29c2"
+    },
+    {
+      "index": 27,
+      "name": "Duality (2)",
+      "resource": "ADL_027_Duality_2",
+      "checksum": 17998,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "4b95431d9abcdc506bf7f7e8edc4bfa9aa2532ebb6010e2160e4f3dea4158073"
+    },
+    {
+      "index": 28,
+      "name": "Duality (3)",
+      "resource": "ADL_028_Duality_3",
+      "checksum": 18324,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "50faacb0fd423dfeb59cede6ec4a0935b1408ff543ad78595a8b985f18edeab4"
+    },
+    {
+      "index": 29,
+      "name": "Duality (4)",
+      "resource": "ADL_029_Duality_4",
+      "checksum": 40511,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "9e69c042d3808c35734d1f613f739e5b6affd92c80e7f26e08664d4bbf528efc"
+    },
+    {
+      "index": 30,
+      "name": "Duality (5)",
+      "resource": "ADL_030_Duality_5",
+      "checksum": 64985,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "d73fca0b2131aa8aab1f0fb604337ba10aed1e3668b789533380902fc2cfd0fd"
+    },
+    {
+      "index": 31,
+      "name": "Eating Cake (1)",
+      "resource": "ADL_031_Eating_Cake_1",
+      "checksum": 38454,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "20ddb24caaac29ef5e6d0544654b513647018c04784243714044e7d5e2a443e4"
+    },
+    {
+      "index": 32,
+      "name": "Eating Cake (2)",
+      "resource": "ADL_032_Eating_Cake_2",
+      "checksum": 34804,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "c3573f1bfe581f5b5c84b53ea664bd5009fe6635bb4383df0166b615358da917"
+    },
+    {
+      "index": 33,
+      "name": "Eating Cake (3)",
+      "resource": "ADL_033_Eating_Cake_3",
+      "checksum": 58198,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "74bf94e7d0c2219e48357bfa483416a8b88e2b9dd7969e8130f08da49add2b94"
+    },
+    {
+      "index": 34,
+      "name": "Eating Cake (4)",
+      "resource": "ADL_034_Eating_Cake_4",
+      "checksum": 52305,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "f832b590ea6ff54941182dac7f5852f962d1c82cc801dd821522d66d4a710052"
+    },
+    {
+      "index": 35,
+      "name": "Eating Cake (5)",
+      "resource": "ADL_035_Eating_Cake_5",
+      "checksum": 2018,
+      "width": 40,
+      "height": 29,
+      "bytes": 12006,
+      "sha256": "fc201a74340aed8efe2e379c5f0c090dfbac6450a0a1aff15fa02203e8458b2f"
+    },
+    {
+      "index": 36,
+      "name": "Eldorado (1)",
+      "resource": "ADL_036_Eldorado_1",
+      "checksum": 27270,
+      "width": 39,
+      "height": 26,
+      "bytes": 10530,
+      "sha256": "73f0354c24eb8b58cce9dc47858162845ee38e3ad5a5fb4ac377d914a9bb03fd"
+    },
+    {
+      "index": 37,
+      "name": "Eldorado (2)",
+      "resource": "ADL_037_Eldorado_2",
+      "checksum": 9170,
+      "width": 39,
+      "height": 26,
+      "bytes": 10529,
+      "sha256": "26d3848165e2e9e7cf35e1dffd6bb113258bdf922d852182225d3d7b499b6d5c"
+    },
+    {
+      "index": 38,
+      "name": "Eldorado (3)",
+      "resource": "ADL_038_Eldorado_3",
+      "checksum": 4348,
+      "width": 39,
+      "height": 26,
+      "bytes": 10529,
+      "sha256": "56621addf859e75c94b0532699265056f8e9693473a65b0d150778b4bd871eb4"
+    },
+    {
+      "index": 39,
+      "name": "Eldorado (4)",
+      "resource": "ADL_039_Eldorado_4",
+      "checksum": 60022,
+      "width": 39,
+      "height": 24,
+      "bytes": 9742,
+      "sha256": "8a541a7d00a3a7ed84e4feb082c9eb863ba7ee4dc99c598ec6574db590f4a11b"
+    },
+    {
+      "index": 40,
+      "name": "Eldorado (5)",
+      "resource": "ADL_040_Eldorado_5",
+      "checksum": 2782,
+      "width": 39,
+      "height": 24,
+      "bytes": 9741,
+      "sha256": "479995cff7285e346385afcbaabd9dfad0fb39416e75c196a707afe163061400"
+    },
+    {
+      "index": 41,
+      "name": "Euphoria (1)",
+      "resource": "ADL_041_Euphoria_1",
+      "checksum": 4658,
+      "width": 31,
+      "height": 30,
+      "bytes": 9665,
+      "sha256": "a035328e7ed1cf63e86fd80fea1d7110b24d66e5f86595c24ce23ac1fcacbb64"
+    },
+    {
+      "index": 42,
+      "name": "Euphoria (2)",
+      "resource": "ADL_042_Euphoria_2",
+      "checksum": 20711,
+      "width": 31,
+      "height": 30,
+      "bytes": 9666,
+      "sha256": "fd7b06f39ac118b077e2b903ab7037802893bcd726ed9d29afdd8402570ff784"
+    },
+    {
+      "index": 43,
+      "name": "Euphoria (3)",
+      "resource": "ADL_043_Euphoria_3",
+      "checksum": 12418,
+      "width": 31,
+      "height": 30,
+      "bytes": 9666,
+      "sha256": "0d277a29026e41d4e985afe6ccef8d3c3ed1fc5d38d8e3f7b5e27ee6881a8524"
+    },
+    {
+      "index": 44,
+      "name": "Euphoria (4)",
+      "resource": "ADL_044_Euphoria_4",
+      "checksum": 49614,
+      "width": 29,
+      "height": 30,
+      "bytes": 9056,
+      "sha256": "e384fb1f2b896c80c1320ea5b86750ed2010f5179da8eba739c1a799bcb90142"
+    },
+    {
+      "index": 45,
+      "name": "Euphoria (5)",
+      "resource": "ADL_045_Euphoria_5",
+      "checksum": 62828,
+      "width": 35,
+      "height": 30,
+      "bytes": 10886,
+      "sha256": "23b55199e2ad30d131fd469660d42df54abe8949091e5960c1681542d43d56a0"
+    },
+    {
+      "index": 46,
+      "name": "Ewe (1)",
+      "resource": "ADL_046_Ewe_1",
+      "checksum": 11464,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "84f24c4ef94425690141e02a6bc6bb484dcc752c845c21b03f6d87e35e2d7574"
+    },
+    {
+      "index": 47,
+      "name": "Ewe (2)",
+      "resource": "ADL_047_Ewe_2",
+      "checksum": 37615,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "f6c193c553f345c9248af87e025120286eaebb26adc6b7b4765ef8cb342bfdc2"
+    },
+    {
+      "index": 48,
+      "name": "Ewe (3)",
+      "resource": "ADL_048_Ewe_3",
+      "checksum": 21962,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "893b47b48ec343e2a33228e943078d97cee3c756ce9c495a2e9b74257eeb8bba"
+    },
+    {
+      "index": 49,
+      "name": "Ewe (4)",
+      "resource": "ADL_049_Ewe_4",
+      "checksum": 7381,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "07488e6fcb68a0a8942bdb9985d426a9d4fb808cdb3fff56c8e5a191a7f92adb"
+    },
+    {
+      "index": 50,
+      "name": "Ewe (5)",
+      "resource": "ADL_050_Ewe_5",
+      "checksum": 34745,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "802c60cce3c172e61018baa4ad9a7f70d4f4e0ad6b13f02369338edb5125975c"
+    },
+    {
+      "index": 51,
+      "name": "Forks (1)",
+      "resource": "ADL_051_Forks_1",
+      "checksum": 44938,
+      "width": 31,
+      "height": 30,
+      "bytes": 9666,
+      "sha256": "323a4ccc3e489d007742cba9f76561a4751a3a2753f3461b3865b140234f7ad7"
+    },
+    {
+      "index": 52,
+      "name": "Forks (2)",
+      "resource": "ADL_052_Forks_2",
+      "checksum": 52707,
+      "width": 31,
+      "height": 30,
+      "bytes": 9666,
+      "sha256": "870ba766eac067eae03dee31b8b3dd6b15f2d54d44a0a980eda72f364bd40e18"
+    },
+    {
+      "index": 53,
+      "name": "Forks (3)",
+      "resource": "ADL_053_Forks_3",
+      "checksum": 29617,
+      "width": 31,
+      "height": 30,
+      "bytes": 9666,
+      "sha256": "20f9f09bb2880573cae580b2924cee6df8d8671ca73cb51d2dc2bb4da3c696d6"
+    },
+    {
+      "index": 54,
+      "name": "Forks (4)",
+      "resource": "ADL_054_Forks_4",
+      "checksum": 825,
+      "width": 29,
+      "height": 30,
+      "bytes": 9054,
+      "sha256": "edf0b01789409d29ee7bcba8220ef866fb0d2e22dca7f2856137a23e1525dbcc"
+    },
+    {
+      "index": 55,
+      "name": "Forks (5)",
+      "resource": "ADL_055_Forks_5",
+      "checksum": 39572,
+      "width": 29,
+      "height": 30,
+      "bytes": 9056,
+      "sha256": "a5eeed4c72839c1a4e0165f79557b8c913667cfd07d46bec37027a8f48c7db2b"
+    },
+    {
+      "index": 56,
+      "name": "Hedges (1)",
+      "resource": "ADL_056_Hedges_1",
+      "checksum": 56492,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "0d4d105027158c0ebc054119d41951b8d233d8149e3abdc063c6473373759a9f"
+    },
+    {
+      "index": 57,
+      "name": "Hedges (2)",
+      "resource": "ADL_057_Hedges_2",
+      "checksum": 25375,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "a3cf10b626215ac1b02bdce5fab09aaff05939b090240e8923348c9913be8a20"
+    },
+    {
+      "index": 58,
+      "name": "Hedges (3)",
+      "resource": "ADL_058_Hedges_3",
+      "checksum": 47918,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "c34a421b042458cbff577428c3d6c870a332322f88c4f3f151d10116e170a25b"
+    },
+    {
+      "index": 59,
+      "name": "Hedges (4)",
+      "resource": "ADL_059_Hedges_4",
+      "checksum": 53836,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "506c7bc4bdcd6a347c2532b4d7c8beb3c10d9a8082ed499a34bd447d136fb30c"
+    },
+    {
+      "index": 60,
+      "name": "Hedges (5)",
+      "resource": "ADL_060_Hedges_5",
+      "checksum": 47359,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "6c3c225142a3b3c3af54ca3e290454fc735e402ac9b1a77c39c7dd8139086636"
+    },
+    {
+      "index": 61,
+      "name": "Hieroglyph (1)",
+      "resource": "ADL_061_Hieroglyph_1",
+      "checksum": 2041,
+      "width": 40,
+      "height": 30,
+      "bytes": 12410,
+      "sha256": "c6b21fb2da305458a632edac5cf92883ce100e1a00a6df55d9f8ef4416b763fc"
+    },
+    {
+      "index": 62,
+      "name": "Hieroglyph (2)",
+      "resource": "ADL_062_Hieroglyph_2",
+      "checksum": 17955,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "0c10012438711c348711f342fe762a9486d12767d6eee625ed8aa6636fe7ff4c"
+    },
+    {
+      "index": 63,
+      "name": "Hieroglyph (3)",
+      "resource": "ADL_063_Hieroglyph_3",
+      "checksum": 62769,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "7432b7a22872908201cd4b0720b0ed17d45af2bdcd9b586d3bdc9b3751923b46"
+    },
+    {
+      "index": 64,
+      "name": "Hieroglyph (4)",
+      "resource": "ADL_064_Hieroglyph_4",
+      "checksum": 59123,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "e43afd0ecfacefcf74ae415ddf289684cbbf713779265e92fc4f9455e4cd0e16"
+    },
+    {
+      "index": 65,
+      "name": "Hieroglyph (5)",
+      "resource": "ADL_065_Hieroglyph_5",
+      "checksum": 34049,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "cd427b8703d1929cc9bc42766f9bb1befc3cc0c69afbe4c4a370f321f6824ff3"
+    },
+    {
+      "index": 66,
+      "name": "Lamon Brown (1)",
+      "resource": "ADL_066_Lamon_Brown_1",
+      "checksum": 41521,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "8a2c047e24fa14aa003d5fc23c17545961b7b619e68bfcb37f92ff4c57657fb9"
+    },
+    {
+      "index": 67,
+      "name": "Lamon Brown (2)",
+      "resource": "ADL_067_Lamon_Brown_2",
+      "checksum": 60714,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "b0a8a07535d7d94885f9e5455509618cce5adca68f3a37a8669dd89468b3cc6a"
+    },
+    {
+      "index": 68,
+      "name": "Lamon Brown (3)",
+      "resource": "ADL_068_Lamon_Brown_3",
+      "checksum": 27024,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "a6060d7c8c1519403bb98738340e84c01da3614311114ea2b33eed419f7a4454"
+    },
+    {
+      "index": 69,
+      "name": "Lamon Brown (4)",
+      "resource": "ADL_069_Lamon_Brown_4",
+      "checksum": 47065,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "77ecfd39101a1ce565bdaad80e0b51edcce7d91402d73a280dfb6f03a7c470be"
+    },
+    {
+      "index": 70,
+      "name": "Lamon Brown (5)",
+      "resource": "ADL_070_Lamon_Brown_5",
+      "checksum": 6116,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "4963ae924bd519ba1df728eef18c1b32ea958da54d557adb9fb5079c67957cbb"
+    },
+    {
+      "index": 71,
+      "name": "Masque (1)",
+      "resource": "ADL_071_Masque_1",
+      "checksum": 24789,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "77c240c978a19f28acbafca0582383b71f3982fef5707d6a5e0b41357c70e725"
+    },
+    {
+      "index": 72,
+      "name": "Masque (2)",
+      "resource": "ADL_072_Masque_2",
+      "checksum": 27568,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "0703da1f73528c25a29ba1e080f96bab66a1ccc7c000914b1f354f00712af76e"
+    },
+    {
+      "index": 73,
+      "name": "Masque (3)",
+      "resource": "ADL_073_Masque_3",
+      "checksum": 26046,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "89048b5ee608cf0aaa1c51de6d43c79f3149ff80c033f70b3bba7896e230f07f"
+    },
+    {
+      "index": 74,
+      "name": "Masque (4)",
+      "resource": "ADL_074_Masque_4",
+      "checksum": 16959,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "e60586a00fcbc99525624538279642e90d4164376cf9e401e58cf556a48545ab"
+    },
+    {
+      "index": 75,
+      "name": "Masque (5)",
+      "resource": "ADL_075_Masque_5",
+      "checksum": 33482,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "095a499a4a2c92154e7cc863ab6228cff14ec0242221935db146fb4e14167b15"
+    },
+    {
+      "index": 76,
+      "name": "Nines (1)",
+      "resource": "ADL_076_Nines_1",
+      "checksum": 24624,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "b72858f076223f4f428c1afa0c97d6feb618d0b2d99c9d36d3709735615410cc"
+    },
+    {
+      "index": 77,
+      "name": "Nines (2)",
+      "resource": "ADL_077_Nines_2",
+      "checksum": 13200,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "aad948d3f9b0974b94fc3382f531f0e089b2f49f57edf258c83e101ee386f0a7"
+    },
+    {
+      "index": 78,
+      "name": "Nines (3)",
+      "resource": "ADL_078_Nines_3",
+      "checksum": 55344,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "f61bfd51843eaea8d8f793101c4a7b85e2562f4ab3bf36da013c37a7785fa3cc"
+    },
+    {
+      "index": 79,
+      "name": "Nines (4)",
+      "resource": "ADL_079_Nines_4",
+      "checksum": 6811,
+      "width": 40,
+      "height": 29,
+      "bytes": 12006,
+      "sha256": "28983a73a23520ef9c4416c16a724c2068d61279db7f0b1badbf70c0e3017aeb"
+    },
+    {
+      "index": 80,
+      "name": "Nines (5)",
+      "resource": "ADL_080_Nines_5",
+      "checksum": 15013,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "346a942454b65a7ec8a2c4f5974d440a2fe3f8cb23f4863894d07c55f8f01c0e"
+    },
+    {
+      "index": 81,
+      "name": "Panda (1)",
+      "resource": "ADL_081_Panda_1",
+      "checksum": 43647,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "f2efb0a8e67acac36ec9603bd5e53d21cb26273406a66ef1e3497a2a4fc03d9f"
+    },
+    {
+      "index": 82,
+      "name": "Panda (2)",
+      "resource": "ADL_082_Panda_2",
+      "checksum": 54617,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "348e4d94696249461bf0ef4fd7027f24b4a74119612646aeadb77ba247197554"
+    },
+    {
+      "index": 83,
+      "name": "Panda (3)",
+      "resource": "ADL_083_Panda_3",
+      "checksum": 6004,
+      "width": 40,
+      "height": 30,
+      "bytes": 12410,
+      "sha256": "9ff15d2cce7f6ade773b95aa9dec8eafc1db067011507a466bd9a9784a45c54a"
+    },
+    {
+      "index": 84,
+      "name": "Panda (4)",
+      "resource": "ADL_084_Panda_4",
+      "checksum": 38465,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "0bcceb274711c19c8c5a446c4aad8b73a828231924367a1599ac6414d39437d7"
+    },
+    {
+      "index": 85,
+      "name": "Panda (5)",
+      "resource": "ADL_085_Panda_5",
+      "checksum": 37206,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "df9882ab2300ab54569b26e7acd6a749d8a276b909036b7d073e74bbf3b62c7a"
+    },
+    {
+      "index": 86,
+      "name": "Pods (1)",
+      "resource": "ADL_086_Pods_1",
+      "checksum": 62746,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "0cccbb6dee41dc7886d810e37a947e2a3818c217e0d8e9dc95aaf5d1d145722b"
+    },
+    {
+      "index": 87,
+      "name": "Pods (2)",
+      "resource": "ADL_087_Pods_2",
+      "checksum": 28684,
+      "width": 39,
+      "height": 27,
+      "bytes": 10924,
+      "sha256": "fc81066578ec734a7837a56501713a320f8724341c8bd115f20c2cf4c70b6bd4"
+    },
+    {
+      "index": 88,
+      "name": "Pods (3)",
+      "resource": "ADL_088_Pods_3",
+      "checksum": 36383,
+      "width": 39,
+      "height": 27,
+      "bytes": 10924,
+      "sha256": "f70c9d0e15a72cad83f4cb7433e6cc6ed05f4c055c51f609d6db5fd555948981"
+    },
+    {
+      "index": 89,
+      "name": "Pods (4)",
+      "resource": "ADL_089_Pods_4",
+      "checksum": 3965,
+      "width": 39,
+      "height": 27,
+      "bytes": 10923,
+      "sha256": "132211d9da5f7ffbc0dac93793b4c5b556218c8a09fa26f1eb62487d06183879"
+    },
+    {
+      "index": 90,
+      "name": "Pods (5)",
+      "resource": "ADL_090_Pods_5",
+      "checksum": 32133,
+      "width": 37,
+      "height": 27,
+      "bytes": 10374,
+      "sha256": "c5d927f6ca7f193141ea67a337f25dcca694457993b18590ffe8026a83af44c5"
+    },
+    {
+      "index": 91,
+      "name": "Quadrupeds (1)",
+      "resource": "ADL_091_Quadrupeds_1",
+      "checksum": 34663,
+      "width": 34,
+      "height": 29,
+      "bytes": 10237,
+      "sha256": "4ab2e45f928c2efb366a36b7689d6b225fc35ab4bc761547bbe3f439d8bdb965"
+    },
+    {
+      "index": 92,
+      "name": "Quadrupeds (2)",
+      "resource": "ADL_092_Quadrupeds_2",
+      "checksum": 32788,
+      "width": 34,
+      "height": 29,
+      "bytes": 10237,
+      "sha256": "113e156fa4db744543edc0d668e6624904fc728d90c32a37c487af7338da2ca3"
+    },
+    {
+      "index": 93,
+      "name": "Quadrupeds (3)",
+      "resource": "ADL_093_Quadrupeds_3",
+      "checksum": 55508,
+      "width": 34,
+      "height": 29,
+      "bytes": 10237,
+      "sha256": "361b57a24ffb92e1ff7bac31635ec615940bfc2c6844c1832f4531f8770aa10d"
+    },
+    {
+      "index": 94,
+      "name": "Quadrupeds (4)",
+      "resource": "ADL_094_Quadrupeds_4",
+      "checksum": 12860,
+      "width": 34,
+      "height": 29,
+      "bytes": 10237,
+      "sha256": "189f82ceaaf9d0fb69b0d8adf805997e01cdc96cdc9455e7b777247aaf4b95d5"
+    },
+    {
+      "index": 95,
+      "name": "Quadrupeds (5)",
+      "resource": "ADL_095_Quadrupeds_5",
+      "checksum": 42219,
+      "width": 34,
+      "height": 29,
+      "bytes": 10237,
+      "sha256": "0dab99721ac776298173943f006128978aed365093daded4631b7c956bf8e299"
+    },
+    {
+      "index": 96,
+      "name": "Quorum (1)",
+      "resource": "ADL_096_Quorum_1",
+      "checksum": 64785,
+      "width": 27,
+      "height": 30,
+      "bytes": 8446,
+      "sha256": "d3f653bfb9ab42c7b1358dc01fc82cb041b4749733415ed20bd37852c5119152"
+    },
+    {
+      "index": 97,
+      "name": "Quorum (2)",
+      "resource": "ADL_097_Quorum_2",
+      "checksum": 7985,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "f62a76139260819427829e5c0b2c4089ebad0e5898ab882f7d2e8fe3bbef6197"
+    },
+    {
+      "index": 98,
+      "name": "Quorum (3)",
+      "resource": "ADL_098_Quorum_3",
+      "checksum": 42104,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "f77cc7796a6d1110a461a01c5f6464c6d42c8ed190e9d79cdf3a61bc7fb30693"
+    },
+    {
+      "index": 99,
+      "name": "Quorum (4)",
+      "resource": "ADL_099_Quorum_4",
+      "checksum": 63019,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "c9c970b03c0437eb7b1f976798cd91bb2f11ac37e1da3baa1d53e397e7b37ab2"
+    },
+    {
+      "index": 100,
+      "name": "Quorum (5)",
+      "resource": "ADL_100_Quorum_5",
+      "checksum": 38789,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "94152c6dcfbf2e25c666aa65b600d57754e47642bbd8dd6bdc2efd7886e26fca"
+    },
+    {
+      "index": 101,
+      "name": "Repeat (1)",
+      "resource": "ADL_101_Repeat_1",
+      "checksum": 14962,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "14300df75e3e90d0de88efb7e143caae8f56046d401136ba88e8fd00482e64a8"
+    },
+    {
+      "index": 102,
+      "name": "Repeat (2)",
+      "resource": "ADL_102_Repeat_2",
+      "checksum": 55632,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "733a8402d046fae112b0e0d0dc5e26c60dea5e95eabadca869e940685c7fcbc0"
+    },
+    {
+      "index": 103,
+      "name": "Repeat (3)",
+      "resource": "ADL_103_Repeat_3",
+      "checksum": 10509,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "44bdf8ded590148ec2fe9edf87d2e4972646f5dc8305eed02f94522c6d9651a5"
+    },
+    {
+      "index": 104,
+      "name": "Repeat (4)",
+      "resource": "ADL_104_Repeat_4",
+      "checksum": 67,
+      "width": 39,
+      "height": 28,
+      "bytes": 11315,
+      "sha256": "9fe76031ad3b39045be24f3b028a01e2d57496a9d427f00d86e4f0446e7bc5e3"
+    },
+    {
+      "index": 105,
+      "name": "Repeat (5)",
+      "resource": "ADL_105_Repeat_5",
+      "checksum": 3085,
+      "width": 39,
+      "height": 28,
+      "bytes": 11317,
+      "sha256": "3435137b54cbad051d534d683109a2e2dbfe629ad838a9c563dd60176f4ec811"
+    },
+    {
+      "index": 106,
+      "name": "Right Wing (1)",
+      "resource": "ADL_106_Right_Wing_1",
+      "checksum": 37918,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "e2cd82a8fb985da7edfa44b06e526fafae6d6654f270f2082e1b36b459fa15ea"
+    },
+    {
+      "index": 107,
+      "name": "Right Wing (2)",
+      "resource": "ADL_107_Right_Wing_2",
+      "checksum": 33728,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "6fb94c4dc93edff59afeea034c55fb247b8eee0f8acf65dbaddff8a5ecb323df"
+    },
+    {
+      "index": 108,
+      "name": "Right Wing (3)",
+      "resource": "ADL_108_Right_Wing_3",
+      "checksum": 7137,
+      "width": 40,
+      "height": 30,
+      "bytes": 12410,
+      "sha256": "9c9a34fcf74196c578d5ae8d3ecea8dbcfd3ce4200267a4d2ed22e1e3b7e1912"
+    },
+    {
+      "index": 109,
+      "name": "Right Wing (4)",
+      "resource": "ADL_109_Right_Wing_4",
+      "checksum": 63455,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "32b54b516955d3aff2972bf37533b5091db94c3cb7536039915e62e9f0d5df1f"
+    },
+    {
+      "index": 110,
+      "name": "Right Wing (5)",
+      "resource": "ADL_110_Right_Wing_5",
+      "checksum": 62499,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "b79770f9989be37f186d1af4e73d11bb4a894fcc64c7a48de9bd1d651c8ff612"
+    },
+    {
+      "index": 111,
+      "name": "Scorch (1)",
+      "resource": "ADL_111_Scorch_1",
+      "checksum": 32555,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "1e4006125945607c98baf0730a4816e5451233167d39c2aafe26317b78fe98aa"
+    },
+    {
+      "index": 112,
+      "name": "Scorch (2)",
+      "resource": "ADL_112_Scorch_2",
+      "checksum": 31996,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "40be06a5a6bd0cd9f4787bc682969375f570e82c16be4552a4d7175e7119c14a"
+    },
+    {
+      "index": 113,
+      "name": "Scorch (3)",
+      "resource": "ADL_113_Scorch_3",
+      "checksum": 26851,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "7b876e80b0f1723656ca373da2b02024faea92351d34f1a72ff34bd0bbf41a75"
+    },
+    {
+      "index": 114,
+      "name": "Scorch (4)",
+      "resource": "ADL_114_Scorch_4",
+      "checksum": 4540,
+      "width": 37,
+      "height": 30,
+      "bytes": 11495,
+      "sha256": "e5334f784a14eab1c540a6076349b9b0acf5951f8f95dab954c183aa7126b853"
+    },
+    {
+      "index": 115,
+      "name": "Scorch (5)",
+      "resource": "ADL_115_Scorch_5",
+      "checksum": 36384,
+      "width": 37,
+      "height": 30,
+      "bytes": 11496,
+      "sha256": "2ea421dec1225d9d49ca78ce0d40bd377dc32bf8753d7953379c1acb051aadcb"
+    },
+    {
+      "index": 116,
+      "name": "Serengeti (1)",
+      "resource": "ADL_116_Serengeti_1",
+      "checksum": 60789,
+      "width": 40,
+      "height": 25,
+      "bytes": 10391,
+      "sha256": "89c0b6e776846ebec2405cafd59c684cfe499f3f2837464f92724f096cb4e723"
+    },
+    {
+      "index": 117,
+      "name": "Serengeti (2)",
+      "resource": "ADL_117_Serengeti_2",
+      "checksum": 64313,
+      "width": 40,
+      "height": 25,
+      "bytes": 10391,
+      "sha256": "726f6147a9bd62b1de1cbce017fcf23d9a5b8ce70da3c80e6a0e7eb80a6855c3"
+    },
+    {
+      "index": 118,
+      "name": "Serengeti (3)",
+      "resource": "ADL_118_Serengeti_3",
+      "checksum": 1163,
+      "width": 40,
+      "height": 25,
+      "bytes": 10390,
+      "sha256": "bf308454b1f1d79dd0c6f6f6644de91d99b3e9f5516fcd23cd776bc9883adeb5"
+    },
+    {
+      "index": 119,
+      "name": "Serengeti (4)",
+      "resource": "ADL_119_Serengeti_4",
+      "checksum": 58312,
+      "width": 40,
+      "height": 25,
+      "bytes": 10391,
+      "sha256": "ccb99bccf04f99652a3342510027f5af402bc78dca0dccd2626e56f61e49e6f9"
+    },
+    {
+      "index": 120,
+      "name": "Serengeti (5)",
+      "resource": "ADL_120_Serengeti_5",
+      "checksum": 447,
+      "width": 40,
+      "height": 25,
+      "bytes": 10389,
+      "sha256": "36828dbc3f6c6266be10e0113dc693d48498d8e1a91589837b43761031b94f81"
+    },
+    {
+      "index": 121,
+      "name": "Singularity (1)",
+      "resource": "ADL_121_Singularity_1",
+      "checksum": 41016,
+      "width": 27,
+      "height": 30,
+      "bytes": 8446,
+      "sha256": "3350c284fcfa6b1476e9764fa017186db5e48a68af31e984e124cdb51ebe74df"
+    },
+    {
+      "index": 122,
+      "name": "Singularity (2)",
+      "resource": "ADL_122_Singularity_2",
+      "checksum": 21577,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "fbf34f5e3e2b26abdba9f65a0f63c75f93c99fd84d0ec6615c479faf88c33cd9"
+    },
+    {
+      "index": 123,
+      "name": "Singularity (3)",
+      "resource": "ADL_123_Singularity_3",
+      "checksum": 37356,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "b5f7878e210b53ebd3a7851da34e4444795787a4839b8bf0bd60c8d95df33f48"
+    },
+    {
+      "index": 124,
+      "name": "Singularity (4)",
+      "resource": "ADL_124_Singularity_4",
+      "checksum": 10867,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "f918205ce664c0e0c7b35d3cfc2f2b0da3b254635910d4d27b737559e215e9bb"
+    },
+    {
+      "index": 125,
+      "name": "Singularity (5)",
+      "resource": "ADL_125_Singularity_5",
+      "checksum": 36853,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "a11f74f02d70cc52148b15bdca1e9624f4e90fdc31064bef43c171dc9188f821"
+    },
+    {
+      "index": 126,
+      "name": "Skyscrapers (1)",
+      "resource": "ADL_126_Skyscrapers_1",
+      "checksum": 63211,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "0557e8a90c3d439d24c0d4294ebdaa16abf4e9ab0402c90295ff578615f5dd93"
+    },
+    {
+      "index": 127,
+      "name": "Skyscrapers (2)",
+      "resource": "ADL_127_Skyscrapers_2",
+      "checksum": 58789,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "6d8b64f19b56a775b5a797c7517010ed9150998b210b5b3fa20f8fc1fbc8585d"
+    },
+    {
+      "index": 128,
+      "name": "Skyscrapers (3)",
+      "resource": "ADL_128_Skyscrapers_3",
+      "checksum": 19299,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "b0f109f5e6a77aced444e2d8ca2afa06e1f5d8eaa8d939e48aa7ec4c8fb9ef61"
+    },
+    {
+      "index": 129,
+      "name": "Skyscrapers (4)",
+      "resource": "ADL_129_Skyscrapers_4",
+      "checksum": 11331,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "e353c6aff9e5a89b4c909dcca701b770dc4a45f03a29bced6054afa60d8d5308"
+    },
+    {
+      "index": 130,
+      "name": "Skyscrapers (5)",
+      "resource": "ADL_130_Skyscrapers_5",
+      "checksum": 24115,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "3fd0a782d71ed432bcf337fa793535d1111ca90c2d3d69a583b7e024ad05495d"
+    },
+    {
+      "index": 131,
+      "name": "Sliced (1)",
+      "resource": "ADL_131_Sliced_1",
+      "checksum": 27007,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "579e7c55ad2f036e8c14c0279bf479ef84ce2098c2946843cb7498fad2ca2671"
+    },
+    {
+      "index": 132,
+      "name": "Sliced (2)",
+      "resource": "ADL_132_Sliced_2",
+      "checksum": 18440,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "577d54931cb94cd3e41623c9e0d5973018fc1de751cb2e4d8e2f2f5ad2ad67e4"
+    },
+    {
+      "index": 133,
+      "name": "Sliced (3)",
+      "resource": "ADL_133_Sliced_3",
+      "checksum": 64183,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "798d9939ba6b113da5db51c259ca53afcc0c7e8c3bdd3ef7c5fc3b70a53d1e64"
+    },
+    {
+      "index": 134,
+      "name": "Sliced (4)",
+      "resource": "ADL_134_Sliced_4",
+      "checksum": 9715,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "e63874fe685a01bb22ea10a2a84abc66d582185e8ff392a6d0764c2d96182b52"
+    },
+    {
+      "index": 135,
+      "name": "Sliced (5)",
+      "resource": "ADL_135_Sliced_5",
+      "checksum": 45229,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "b35c18c9a980a97dbde0d8315f77839001e9e2319298aa689e23b82bb12747a6"
+    },
+    {
+      "index": 136,
+      "name": "Snails (1)",
+      "resource": "ADL_136_Snails_1",
+      "checksum": 28576,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "5c558e85df2cc2f22267462df343da4e9aa1c1cfb52458b9c9255a408f3ad589"
+    },
+    {
+      "index": 137,
+      "name": "Snails (2)",
+      "resource": "ADL_137_Snails_2",
+      "checksum": 24668,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "b9b167733360adc87526e307407eb50edfa44efea44782974005d3ae23a2455f"
+    },
+    {
+      "index": 138,
+      "name": "Snails (3)",
+      "resource": "ADL_138_Snails_3",
+      "checksum": 58888,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "1c53f429738770f5c7637a85e6a169cdcac5c0ce46e3aeb5f2c34cbe4088fa42"
+    },
+    {
+      "index": 139,
+      "name": "Snails (4)",
+      "resource": "ADL_139_Snails_4",
+      "checksum": 36320,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "2988be314813d057fac4556575e5e798f35fb9fbaf96fdd33075f777ef8c19c5"
+    },
+    {
+      "index": 140,
+      "name": "Snails (5)",
+      "resource": "ADL_140_Snails_5",
+      "checksum": 59614,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "81081b0da145ee1ac7dc4e9d6c29ad4c5bea352c70442564c080546001834dbd"
+    },
+    {
+      "index": 141,
+      "name": "Spaz (1)",
+      "resource": "ADL_141_Spaz_1",
+      "checksum": 26666,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "2a4755862747ba3982c1ecc7d43a94cf05b1b52d9e5560959f7e8b33ae94953b"
+    },
+    {
+      "index": 142,
+      "name": "Spaz (2)",
+      "resource": "ADL_142_Spaz_2",
+      "checksum": 8701,
+      "width": 38,
+      "height": 29,
+      "bytes": 11416,
+      "sha256": "918c69948c4133b8fc1ff121dca63551972e94f747e953af2eb1cd64529343fa"
+    },
+    {
+      "index": 143,
+      "name": "Spaz (3)",
+      "resource": "ADL_143_Spaz_3",
+      "checksum": 62780,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "0f7e3ad6ccecbca495d63764899c66606ffc783f19fd453604a0fdacf7ef8de7"
+    },
+    {
+      "index": 144,
+      "name": "Spaz (4)",
+      "resource": "ADL_144_Spaz_4",
+      "checksum": 60982,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "14ad37664b0e7e124b2becda4927ace9169795199ae21247b3a699913877c553"
+    },
+    {
+      "index": 145,
+      "name": "Spaz (5)",
+      "resource": "ADL_145_Spaz_5",
+      "checksum": 23954,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "1a37d56de0d351338b7e6a9364749f43753a025b87a15797405458d7bd6a785f"
+    },
+    {
+      "index": 146,
+      "name": "Spider (1)",
+      "resource": "ADL_146_Spider_1",
+      "checksum": 38584,
+      "width": 40,
+      "height": 27,
+      "bytes": 11199,
+      "sha256": "6eab792276d7f5c7d0574eaf67fa67d23e4416987ed80b308b5cba569c212adc"
+    },
+    {
+      "index": 147,
+      "name": "Spider (2)",
+      "resource": "ADL_147_Spider_2",
+      "checksum": 59892,
+      "width": 40,
+      "height": 27,
+      "bytes": 11199,
+      "sha256": "cb67ee810d48ef353a1dd1aa06a6d2e992283f66d05eb2e45342471076d5b0a2"
+    },
+    {
+      "index": 148,
+      "name": "Spider (3)",
+      "resource": "ADL_148_Spider_3",
+      "checksum": 22415,
+      "width": 40,
+      "height": 25,
+      "bytes": 10391,
+      "sha256": "ebe7c7088be198c9e1a21c4c9e765c870eb747be1b3956d1bdeb576f4767bf47"
+    },
+    {
+      "index": 149,
+      "name": "Spider (4)",
+      "resource": "ADL_149_Spider_4",
+      "checksum": 58008,
+      "width": 40,
+      "height": 25,
+      "bytes": 10391,
+      "sha256": "ca71e74b25232813f754435b98f2e9b7e2d9447e37c264f3e7017bbc9678d5f1"
+    },
+    {
+      "index": 150,
+      "name": "Spider (5)",
+      "resource": "ADL_150_Spider_5",
+      "checksum": 42455,
+      "width": 40,
+      "height": 25,
+      "bytes": 10391,
+      "sha256": "9d5116a44a0140e495a3bb8998283b2f1927f991030bd6718d51d6c8e71af87e"
+    },
+    {
+      "index": 151,
+      "name": "Splitsville (1)",
+      "resource": "ADL_151_Splitsville_1",
+      "checksum": 20968,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "70201075b63f71f8cd975d4ead51fe8f04bd0ce84ea12e594b448bbea154fdd5"
+    },
+    {
+      "index": 152,
+      "name": "Splitsville (2)",
+      "resource": "ADL_152_Splitsville_2",
+      "checksum": 63632,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "0da0017a2a6f22491708f3f6cb4a11be50f589f1973cb94eda498b68ee40b6d1"
+    },
+    {
+      "index": 153,
+      "name": "Splitsville (3)",
+      "resource": "ADL_153_Splitsville_3",
+      "checksum": 40949,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "4fe56691092a1096f77b1bb56e918573dbe4601834e042e0b53906fdd1efa304"
+    },
+    {
+      "index": 154,
+      "name": "Splitsville (4)",
+      "resource": "ADL_154_Splitsville_4",
+      "checksum": 5466,
+      "width": 40,
+      "height": 30,
+      "bytes": 12410,
+      "sha256": "82f15edd4cd09a2e1f5c56e8a7b6291a7d2967453d754d8e66c506cb9fe67089"
+    },
+    {
+      "index": 155,
+      "name": "Splitsville (5)",
+      "resource": "ADL_155_Splitsville_5",
+      "checksum": 55807,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "b8bc9ad08c9409e4306fd2c7f3e57c2e97b496ad5b0f4248a4a68ef954fcbbf0"
+    },
+    {
+      "index": 156,
+      "name": "Squirrel (1)",
+      "resource": "ADL_156_Squirrel_1",
+      "checksum": 37070,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "37d45f88351aecaf9d7a35e04b025c4db03d015ef80d4b3d7733d94cb2ff2ed5"
+    },
+    {
+      "index": 157,
+      "name": "Squirrel (2)",
+      "resource": "ADL_157_Squirrel_2",
+      "checksum": 58913,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "c12b5109fb049eabf8994429d0ccb7ec8d86b39212c76d29785ea070bc703b74"
+    },
+    {
+      "index": 158,
+      "name": "Squirrel (3)",
+      "resource": "ADL_158_Squirrel_3",
+      "checksum": 31448,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "7ba3b034da7b69e90b5d5f36edfa88f7ee2d85c9ea1671cbe90ca7cec6e849a9"
+    },
+    {
+      "index": 159,
+      "name": "Squirrel (4)",
+      "resource": "ADL_159_Squirrel_4",
+      "checksum": 10067,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "ea13f9ece8866c19340d68d089785004eee84a366e9098f06f8a786407789aee"
+    },
+    {
+      "index": 160,
+      "name": "Squirrel (5)",
+      "resource": "ADL_160_Squirrel_5",
+      "checksum": 60623,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "5bd7d55efd6a4b460666a45e481ed75cae2e45f67bd6996d9c8fbd99979fd621"
+    },
+    {
+      "index": 161,
+      "name": "StreetSmarts (1)",
+      "resource": "ADL_161_StreetSmarts_1",
+      "checksum": 1832,
+      "width": 35,
+      "height": 28,
+      "bytes": 10177,
+      "sha256": "c7eee539f7e37f7a5dfed90a88ebeaa80119af1ef35018de26466e25eed59f43"
+    },
+    {
+      "index": 162,
+      "name": "StreetSmarts (2)",
+      "resource": "ADL_162_StreetSmarts_2",
+      "checksum": 50429,
+      "width": 35,
+      "height": 28,
+      "bytes": 10178,
+      "sha256": "d9a6ca48cabbff89939fef40ae74236dfa5265ca29d33be906a1763bb766150d"
+    },
+    {
+      "index": 163,
+      "name": "StreetSmarts (3)",
+      "resource": "ADL_163_StreetSmarts_3",
+      "checksum": 36991,
+      "width": 35,
+      "height": 28,
+      "bytes": 10178,
+      "sha256": "99c5a8035ec3b3016fd3d94f61b0484767469dfc30c24a5fd7986c4410d12c02"
+    },
+    {
+      "index": 164,
+      "name": "StreetSmarts (4)",
+      "resource": "ADL_164_StreetSmarts_4",
+      "checksum": 35339,
+      "width": 35,
+      "height": 28,
+      "bytes": 10178,
+      "sha256": "94a3b588065bcb6f96d2820d1e5ac1e30469badb2a36a275cf80fb03993f2058"
+    },
+    {
+      "index": 165,
+      "name": "StreetSmarts (5)",
+      "resource": "ADL_165_StreetSmarts_5",
+      "checksum": 6568,
+      "width": 35,
+      "height": 28,
+      "bytes": 10177,
+      "sha256": "cf678140905ee4433d0822e7e445f97c23d07ff54291182a509c34816dfd2b3c"
+    },
+    {
+      "index": 166,
+      "name": "Swervel (1)",
+      "resource": "ADL_166_Swervel_1",
+      "checksum": 20426,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "7984bded923a8846f60c1cdb622276925241b03c1de11519477574c9e6045aaf"
+    },
+    {
+      "index": 167,
+      "name": "Swervel (2)",
+      "resource": "ADL_167_Swervel_2",
+      "checksum": 24853,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "a65cc51e4affdb6af841efa067f1c646d99c3e8e6633edfe80b0aa7ba1b96e22"
+    },
+    {
+      "index": 168,
+      "name": "Swervel (3)",
+      "resource": "ADL_168_Swervel_3",
+      "checksum": 58327,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "16a888cd96025e9768477a400aab44e89227156dc0b8efdc3a8a34cc1bc616ae"
+    },
+    {
+      "index": 169,
+      "name": "Swervel (4)",
+      "resource": "ADL_169_Swervel_4",
+      "checksum": 34367,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "bde937ae8d5b70c632a9c562aa967407edacc55509c11d61338ccc1add2a098c"
+    },
+    {
+      "index": 170,
+      "name": "Swervel (5)",
+      "resource": "ADL_170_Swervel_5",
+      "checksum": 42791,
+      "width": 38,
+      "height": 29,
+      "bytes": 11417,
+      "sha256": "39e501ecd98a08a77530ca4ecb798d9dc6be432f21e7b382999c60a79bac9709"
+    },
+    {
+      "index": 171,
+      "name": "Tempest (1)",
+      "resource": "ADL_171_Tempest_1",
+      "checksum": 47064,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "194b6ba3085a9c18884f91b06c65afc71437788980e054393a222d1283467b16"
+    },
+    {
+      "index": 172,
+      "name": "Tempest (2)",
+      "resource": "ADL_172_Tempest_2",
+      "checksum": 38065,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "494b89a12e76433f93e428808071cf75d466acc57214dbfbbd084e2636bd1483"
+    },
+    {
+      "index": 173,
+      "name": "Tempest (3)",
+      "resource": "ADL_173_Tempest_3",
+      "checksum": 64498,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "d900e96f340d87b47e20fde5805fe0c6d0620ac07bfed079d2393899d02a0135"
+    },
+    {
+      "index": 174,
+      "name": "Tempest (4)",
+      "resource": "ADL_174_Tempest_4",
+      "checksum": 23364,
+      "width": 39,
+      "height": 28,
+      "bytes": 11318,
+      "sha256": "e67e0aa1eae8228ae5df833a6d63a3afa3c56f88178e9e39134d4d7f87b68105"
+    },
+    {
+      "index": 175,
+      "name": "Tempest (5)",
+      "resource": "ADL_175_Tempest_5",
+      "checksum": 8758,
+      "width": 39,
+      "height": 28,
+      "bytes": 11317,
+      "sha256": "2638b207050c2c95104bc9fc937a2ce24863c5d80eb778c73afc468cec05fad9"
+    },
+    {
+      "index": 176,
+      "name": "Tensor (1)",
+      "resource": "ADL_176_Tensor_1",
+      "checksum": 5596,
+      "width": 40,
+      "height": 30,
+      "bytes": 12410,
+      "sha256": "5ef39ebfdf97462884a2bb8a96761b06a891d70ca40a4657aeb5b9861823c82a"
+    },
+    {
+      "index": 177,
+      "name": "Tensor (2)",
+      "resource": "ADL_177_Tensor_2",
+      "checksum": 54637,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "d29acc5fa1a24677ea7fe17658d2ef2f2d4d6d42d04a1e53ebfc5c80e062d46f"
+    },
+    {
+      "index": 178,
+      "name": "Tensor (3)",
+      "resource": "ADL_178_Tensor_3",
+      "checksum": 57281,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "bad083c161969aa0f232c1dffed19cf0c24d30e3156f61fbea8b056aa1802cd4"
+    },
+    {
+      "index": 179,
+      "name": "Tensor (4)",
+      "resource": "ADL_179_Tensor_4",
+      "checksum": 28746,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "92ca325327f86c86cd7758aeca467664771f79cff87fe5d68e97ff38a66e3656"
+    },
+    {
+      "index": 180,
+      "name": "Tensor (5)",
+      "resource": "ADL_180_Tensor_5",
+      "checksum": 14419,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "28898e98fd58c55f8a8855325d01095922a4a7a9588043d43b4c23ab163bcf54"
+    },
+    {
+      "index": 181,
+      "name": "Tertiary (1)",
+      "resource": "ADL_181_Tertiary_1",
+      "checksum": 40012,
+      "width": 29,
+      "height": 30,
+      "bytes": 9056,
+      "sha256": "c8a3f46d7e476a3faa08245a4183fa875fb0cdf96290d7ebc9c32215361182ad"
+    },
+    {
+      "index": 182,
+      "name": "Tertiary (2)",
+      "resource": "ADL_182_Tertiary_2",
+      "checksum": 43342,
+      "width": 33,
+      "height": 30,
+      "bytes": 10276,
+      "sha256": "f21a2d27b5a664ee8d97cfe2a0b3cac4858bc2cbf3f53af6c4d318a8c7f109d2"
+    },
+    {
+      "index": 183,
+      "name": "Tertiary (3)",
+      "resource": "ADL_183_Tertiary_3",
+      "checksum": 7842,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "bc832deb409c678209d45cdd82a1177e63c30a9d221b2cfdc74948f91494de39"
+    },
+    {
+      "index": 184,
+      "name": "Tertiary (4)",
+      "resource": "ADL_184_Tertiary_4",
+      "checksum": 11301,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "e077f928ac075ce3771ae670c1fe02ded455267185f730d14a7ac552627212d0"
+    },
+    {
+      "index": 185,
+      "name": "Tertiary (5)",
+      "resource": "ADL_185_Tertiary_5",
+      "checksum": 17193,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "e1ead77b8ba2578743a719fb6448ced2969b55c9f1248114ef0a62da22e2e262"
+    },
+    {
+      "index": 186,
+      "name": "Trio (1)",
+      "resource": "ADL_186_Trio_1",
+      "checksum": 61138,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "68dceb33ac6cb570b2236f1b435d5a93700993bb4031591c773e1687bbbc833b"
+    },
+    {
+      "index": 187,
+      "name": "Trio (2)",
+      "resource": "ADL_187_Trio_2",
+      "checksum": 47637,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "6999378d6ba54a52ee8675e2ba6421385b5c22ca04a769001e24b09d3da8b045"
+    },
+    {
+      "index": 188,
+      "name": "Trio (3)",
+      "resource": "ADL_188_Trio_3",
+      "checksum": 754,
+      "width": 40,
+      "height": 30,
+      "bytes": 12409,
+      "sha256": "22b88ab411532c9fdd55392c4e10f08fac3bf4b120c406c459fb18a9f87230bd"
+    },
+    {
+      "index": 189,
+      "name": "Trio (4)",
+      "resource": "ADL_189_Trio_4",
+      "checksum": 37194,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "81f70f703b064de72faa398fc983c3eb0c33c00ed213fff173006eece5bfeda0"
+    },
+    {
+      "index": 190,
+      "name": "Trio (5)",
+      "resource": "ADL_190_Trio_5",
+      "checksum": 13963,
+      "width": 40,
+      "height": 30,
+      "bytes": 12411,
+      "sha256": "304d2e7e0c79fa31a3e9426d82133e35b6de938684947576852ad6ab1f328b92"
+    },
+    {
+      "index": 191,
+      "name": "Voodoo (1)",
+      "resource": "ADL_191_Voodoo_1",
+      "checksum": 23507,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "1230e01c20a267c993458ea46046a00a4215ded352ec5275cab3380da946da15"
+    },
+    {
+      "index": 192,
+      "name": "Voodoo (2)",
+      "resource": "ADL_192_Voodoo_2",
+      "checksum": 26280,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "0e4c2bd25dbb0973959605fd68b2fef6928baa74e1bb702e2b8cfab8273be176"
+    },
+    {
+      "index": 193,
+      "name": "Voodoo (3)",
+      "resource": "ADL_193_Voodoo_3",
+      "checksum": 28841,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "5669ddee664a8712fd885ebd52a769d5192f06d4bb2992641a0218a0e7d331d3"
+    },
+    {
+      "index": 194,
+      "name": "Voodoo (4)",
+      "resource": "ADL_194_Voodoo_4",
+      "checksum": 24360,
+      "width": 39,
+      "height": 30,
+      "bytes": 12106,
+      "sha256": "a42d2376cca32724f2afe675eacc80cc1cc06f9d2133cde5ceba798945b22ea8"
+    },
+    {
+      "index": 195,
+      "name": "Voodoo (5)",
+      "resource": "ADL_195_Voodoo_5",
+      "checksum": 2572,
+      "width": 39,
+      "height": 30,
+      "bytes": 12105,
+      "sha256": "98e9c5439514cab323aa3074d2c58e86a8f69a2adaadaf48e3667a6988db8503"
+    },
+    {
+      "index": 196,
+      "name": "XrixxXroxx (1)",
+      "resource": "ADL_196_XrixxXroxx_1",
+      "checksum": 48864,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "fcda5652c418e3c9a3dccc47c07bac2cb0fc3f07342adac65a908814fa1d84f6"
+    },
+    {
+      "index": 197,
+      "name": "XrixxXroxx (2)",
+      "resource": "ADL_197_XrixxXroxx_2",
+      "checksum": 30394,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "2c2070cef0669e57c509cc23692c59f6f52db884b71f297a922a2ec4112f0ab6"
+    },
+    {
+      "index": 198,
+      "name": "XrixxXroxx (3)",
+      "resource": "ADL_198_XrixxXroxx_3",
+      "checksum": 18471,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "e77ab8a82d032c090f3906478a1cac9f3d1ab3db3bd1637fb72ee1349ccba74b"
+    },
+    {
+      "index": 199,
+      "name": "XrixxXroxx (4)",
+      "resource": "ADL_199_XrixxXroxx_4",
+      "checksum": 1312,
+      "width": 40,
+      "height": 29,
+      "bytes": 12006,
+      "sha256": "128b2e74283946851336743d37b9f5fbc2d65546c9c53e4073dc1829de613771"
+    },
+    {
+      "index": 200,
+      "name": "XrixxXroxx (5)",
+      "resource": "ADL_200_XrixxXroxx_5",
+      "checksum": 40156,
+      "width": 40,
+      "height": 29,
+      "bytes": 12007,
+      "sha256": "8827f01649a9a791102f6bfe72337c9f47b1764caf0097b25db790ce03c94aad"
+    },
+    {
+      "index": 201,
+      "name": "Zephyr (1)",
+      "resource": "ADL_201_Zephyr_1",
+      "checksum": 15141,
+      "width": 37,
+      "height": 29,
+      "bytes": 11122,
+      "sha256": "8f390bdc5251eca4424057e6e4a9c006a015e4b3492a60abe9d48fa80877b93a"
+    },
+    {
+      "index": 202,
+      "name": "Zephyr (2)",
+      "resource": "ADL_202_Zephyr_2",
+      "checksum": 64358,
+      "width": 37,
+      "height": 29,
+      "bytes": 11122,
+      "sha256": "8f36b295b7fb518624cb12faa327dce66118655e88ee625330212524c2f3faf0"
+    },
+    {
+      "index": 203,
+      "name": "Zephyr (3)",
+      "resource": "ADL_203_Zephyr_3",
+      "checksum": 2064,
+      "width": 37,
+      "height": 29,
+      "bytes": 11121,
+      "sha256": "3bdaa3ea2867bec553afd141ce9183fbc2ee19dc3b70ef4fd6798b78ac0a9e0e"
+    },
+    {
+      "index": 204,
+      "name": "Zephyr (4)",
+      "resource": "ADL_204_Zephyr_4",
+      "checksum": 46278,
+      "width": 37,
+      "height": 29,
+      "bytes": 11122,
+      "sha256": "a9265b0165c8f633e255d94bba0511a41b3db577b1824ea760c11238dee8a625"
+    },
+    {
+      "index": 205,
+      "name": "Zephyr (5)",
+      "resource": "ADL_205_Zephyr_5",
+      "checksum": 58448,
+      "width": 39,
+      "height": 29,
+      "bytes": 11712,
+      "sha256": "b9cd884057251f4c17a868ed2f5fda52076f0726923543d3d8d8778bee39eda7"
+    }
+  ]
+}
