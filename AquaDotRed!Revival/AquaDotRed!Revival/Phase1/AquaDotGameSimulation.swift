@@ -19,6 +19,11 @@ final class AquaDotGameSimulation {
         var passiveEnergyRecoveryPerSecond: Double = 0.018
         var bugWarpSlowdown: Double = 0.22
         var postMunchBugRecovery: Double = 1.35
+
+        // Phase 2.1.1 bug fix: the previous collision threshold was much
+        // smaller than the visible AquaDot/bug silhouettes, allowing obvious
+        // on-screen overlap without registering contact.
+        var bugCollisionRadiusCells: Double = 0.92
     }
 
     let topology: AquaDotMazeTopology
@@ -33,7 +38,15 @@ final class AquaDotGameSimulation {
     private var extraLifeThresholds = [25_000, 75_000, 150_000, 250_000]
     private var nextRepeatingExtraLife = 350_000
 
-    init(topology: AquaDotMazeTopology, tuning: Tuning = Tuning(), seed: UInt64 = 0xA51AD07) {
+    init(
+        topology: AquaDotMazeTopology,
+        tuning: Tuning = Tuning(),
+        seed: UInt64 = 0xA51AD07,
+        initialScore: Int = 0,
+        initialBonus: Int = 0,
+        initialMultiplier: Int = 1,
+        initialLives: Int = 3
+    ) {
         self.topology = topology
         self.tuning = tuning
         var setupRandom = AquaDotSeededRandom(seed: seed)
@@ -92,11 +105,11 @@ final class AquaDotGameSimulation {
             multiplierGoodieSpawned: false,
             bugs: bugs,
             recentPlayerTrail: [first],
-            score: 0,
-            bonus: 0,
-            multiplier: 1,
+            score: max(0, initialScore),
+            bonus: max(0, initialBonus),
+            multiplier: max(1, initialMultiplier),
             energy: 1.0,
-            lives: 3,
+            lives: max(0, initialLives),
             availableYummyPower: nil,
             activeSpecialPower: nil,
             specialPowerAmount: 0,
@@ -478,7 +491,8 @@ final class AquaDotGameSimulation {
             let bp = bug.renderPosition()
             let dx = playerPosition.x - bp.x
             let dy = playerPosition.y - bp.y
-            guard dx * dx + dy * dy < 0.16 else { continue }
+            let collisionRadius = tuning.bugCollisionRadiusCells
+            guard dx * dx + dy * dy < collisionRadius * collisionRadius else { continue }
 
             if state.isMunchActive || bug.mode == .frightened {
                 eatBug(at: index)

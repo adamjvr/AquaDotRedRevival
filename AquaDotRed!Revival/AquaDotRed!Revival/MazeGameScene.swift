@@ -68,6 +68,9 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private var measuredFPS: Double = 0
     private var nextDebugRefreshTime: TimeInterval = 0
 
+    private var pendingAutomaticLevelAdvance = false
+    private var playerSpinAngle: CGFloat = 0
+
     #if os(iOS)
     private var touchStart: CGPoint?
     #endif
@@ -130,7 +133,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
     // MARK: - Session lifecycle
 
-    private func loadCatalogLevel(at index: Int) {
+    private func loadCatalogLevel(at index: Int, carry: AquaDotRunCarry = .fresh) {
         let catalog = AquaDotOriginalLevelCatalog.standardLevels
         guard !catalog.isEmpty else { showFatalMessage("Recovered level catalog is empty"); return }
 
@@ -139,13 +142,20 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
         do {
             let maze = try AquaDotLevelLoader().load(record: record)
-            let newSession = AquaDotGameSession(levelRecord: record, maze: maze, graphicsMode: preferences.graphicsMode)
+            let newSession = AquaDotGameSession(
+                levelRecord: record,
+                maze: maze,
+                graphicsMode: preferences.graphicsMode,
+                carry: carry
+            )
             session = newSession
             layout = AquaDotMazeLayout(maze: maze)
             assets = AquaDotAssetProvider(mode: newSession.graphicsMode)
             previousUpdateTime = nil
             accumulator = 0
             nextCollectibleSyncTime = 0
+            pendingAutomaticLevelAdvance = false
+            playerSpinAngle = 0
             lastWallPalette = preferences.wallPalette
             rebuildScene()
 
@@ -383,10 +393,47 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
                 synchronizeGoodie()
             case .paused:
                 if let session { renderPauseOverlay(session: session) }
+            case .levelCompleted:
+                scheduleAutomaticLevelAdvance()
             default:
                 break
             }
         }
+    }
+
+
+    /// Advance automatically after clearing the required dot field. The new
+    /// maze receives run-level score/lives/bonus/multiplier while rebuilding
+    /// maze-local state exactly as a fresh level should.
+    private func scheduleAutomaticLevelAdvance() {
+        guard !pendingAutomaticLevelAdvance, let session else { return }
+        pendingAutomaticLevelAdvance = true
+
+        let carry = AquaDotRunCarry(state: session.state)
+        let banner = SKLabelNode(fontNamed: "Helvetica-BoldOblique")
+        banner.text = "maze complete"
+        banner.fontSize = 28
+        banner.fontColor = .cyan
+        banner.horizontalAlignmentMode = .center
+        banner.verticalAlignmentMode = .center
+        banner.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        banner.zPosition = 500
+        addChild(banner)
+
+        banner.run(.sequence([
+            .scale(to: 1.08, duration: 0.18),
+            .wait(forDuration: 0.85),
+            .fadeOut(withDuration: 0.18),
+            .run { [weak self] in
+                guard let self else { return }
+                let catalog = AquaDotOriginalLevelCatalog.standardLevels
+                guard !catalog.isEmpty else { return }
+                self.loadCatalogLevel(
+                    at: (self.currentCatalogIndex + 1) % catalog.count,
+                    carry: carry
+                )
+            }
+        ]))
     }
 
     // MARK: - HUD based on recovered 800px panel
@@ -690,6 +737,18 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         audio.handle(events)
 
         playerNode?.position = layout.point(for: session.state.player.renderPosition())
+
+        // The normal red AquaDot now visibly spins while moving. Rotation is
+        // presentation-only; it does not alter logical position or collisions.
+        if session.state.player.nextNode != nil, currentPlayerAppearance == .normal {
+            let directionSign: CGFloat
+            switch session.state.player.movementDirection {
+            case .left, .up: directionSign = -1
+            case .right, .down, nil: directionSign = 1
+            }
+            playerSpinAngle += CGFloat(frameDelta) * 5.4 * directionSign
+        }
+        playerNode?.zRotation = playerSpinAngle
         updatePlayerAppearance(session: session, time: currentTime)
 
         let playerPosition = session.state.player.renderPosition()
