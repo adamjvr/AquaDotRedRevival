@@ -7,17 +7,20 @@ import AppKit
 import UIKit
 #endif
 
-/// Phase 2: OG-derived remaster scene.
+/// Phase 2.1: stabilized OG-derived remaster scene.
 ///
 /// The scene is intentionally a presentation/input shell. Original maze data,
 /// player rules, dynamic dot states and bug behavior live in the simulation.
+/// Phase 2.1 removes per-dot scene reconstruction, adds a real pause/menu bridge,
+/// and renders the recovered thin-vs-solid maze-wall hierarchy faithfully.
 final class MazeGameScene: SKScene, AquaDotInputSink {
     private static let fixedStep = 1.0 / 120.0
     private static let maximumFrameDelta = 0.10
 
+    private let preferences = AquaDotPreferences.shared
     private var session: AquaDotGameSession?
     private var layout: AquaDotMazeLayout?
-    private var assets = AquaDotAssetProvider(mode: .remastered)
+    private var assets = AquaDotAssetProvider(mode: AquaDotPreferences.shared.graphicsMode)
     private let audio = AquaDotAudioSystem()
 
     private let mazeRoot = SKNode()
@@ -26,13 +29,20 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private let actorRoot = SKNode()
     private let hudRoot = SKNode()
     private let debugRoot = SKNode()
+    private let pauseRoot = SKNode()
 
     private var playerNode: SKSpriteNode?
     private var currentPlayerAppearance: AquaDotPlayerAppearance = .normal
     private var bugNodes: [Character: SKSpriteNode] = [:]
-    private var lastDots: [GridPosition: AquaDotDotKind] = [:]
-    private var lastMunchDots = Set<GridPosition>()
-    private var lastGoodie: AquaDotGoodieState?
+
+    // Persistent collectible nodes. Phase 2 rebuilt the entire field whenever
+    // one dot changed; Phase 2.1 mutates only the affected SpriteKit nodes.
+    private var dotNodes: [GridPosition: SKSpriteNode] = [:]
+    private var renderedDotKinds: [GridPosition: AquaDotDotKind] = [:]
+    private var munchNodes: [GridPosition: SKNode] = [:]
+    private var goodieNode: SKSpriteNode?
+    private var renderedGoodieKind: AquaDotGoodieKind?
+    private var renderedGoodiePosition: GridPosition?
 
     private var energyWave: SKShapeNode?
     private var specialWave: SKShapeNode?
@@ -49,6 +59,14 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private var currentCatalogIndex = 0
     private var debugVisible = false
     private var damageGlowUntil: TimeInterval = 0
+    private var nextCollectibleSyncTime: TimeInterval = 0
+    private var lastWallPalette = AquaDotPreferences.shared.wallPalette
+    private var pauseObserver: NSObjectProtocol?
+
+    private var performanceWindowStart: TimeInterval = 0
+    private var performanceFrameCount = 0
+    private var measuredFPS: Double = 0
+    private var nextDebugRefreshTime: TimeInterval = 0
 
     #if os(iOS)
     private var touchStart: CGPoint?
@@ -57,14 +75,57 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     override func didMove(to view: SKView) {
         backgroundColor = .black
         anchorPoint = .zero
+        view.preferredFramesPerSecond = preferences.attemptHigherFramerate ? 120 : 60
         #if os(macOS)
         view.window?.makeFirstResponder(view)
         #endif
 
-        if let index = AquaDotOriginalLevelCatalog.standardLevels.firstIndex(where: { $0.originalName == "Ewe (1)" }) {
-            currentCatalogIndex = index
+        if pauseObserver == nil {
+            pauseObserver = NotificationCenter.default.addObserver(
+                forName: .aquaDotTogglePause,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.send(.pause, source: .keyboard)
+            }
         }
-        loadCatalogLevel(at: currentCatalogIndex)
+
+        // `didMove(to:)` also runs when an existing scene is reattached after
+        // Options/Opening. Never reload the maze in that case: the original game
+        // had a resume path and the shell deliberately preserves the live session.
+        if session == nil {
+            if let index = AquaDotOriginalLevelCatalog.standardLevels.firstIndex(where: { $0.originalName == "Ewe (1)" }) {
+                currentCatalogIndex = index
+            }
+            loadCatalogLevel(at: currentCatalogIndex)
+        }
+    }
+
+    /// Stop real-time audio while SwiftUI presents the opening/options shell, but
+    /// keep every bit of simulation state and every SpriteKit node alive.
+    func suspendForShell() {
+        audio.stopAll()
+        previousUpdateTime = nil
+        accumulator = 0
+    }
+
+    /// Resume the preserved session without reparsing/rebuilding its maze.
+    func resumeFromShell() {
+        guard let session else { return }
+        previousUpdateTime = nil
+        accumulator = 0
+        audio.startLevelMusic(variant: (currentCatalogIndex / 5) % 6 + 1)
+        if let power = session.state.activeSpecialPower {
+            audio.resumeSpecialPower(power)
+        }
+    }
+
+    func shutdown() {
+        if let pauseObserver {
+            NotificationCenter.default.removeObserver(pauseObserver)
+            self.pauseObserver = nil
+        }
+        audio.stopAll()
     }
 
     // MARK: - Session lifecycle
@@ -78,17 +139,19 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
         do {
             let maze = try AquaDotLevelLoader().load(record: record)
-            let newSession = AquaDotGameSession(levelRecord: record, maze: maze, graphicsMode: session?.graphicsMode ?? .remastered)
+            let newSession = AquaDotGameSession(levelRecord: record, maze: maze, graphicsMode: preferences.graphicsMode)
             session = newSession
             layout = AquaDotMazeLayout(maze: maze)
             assets = AquaDotAssetProvider(mode: newSession.graphicsMode)
             previousUpdateTime = nil
             accumulator = 0
+            nextCollectibleSyncTime = 0
+            lastWallPalette = preferences.wallPalette
             rebuildScene()
 
             audio.stopMusic()
             audio.startLevelMusic(variant: (currentCatalogIndex / 5) % 6 + 1)
-            print("AquaDot Phase 2: \(record.originalName), CRC \(maze.storedChecksum) ✓, theme \(newSession.wallThemeIndex), bugs \(newSession.state.bugs.count), mode \(newSession.graphicsMode.rawValue)")
+            print("AquaDot Phase 2.1: \(record.originalName), CRC \(maze.storedChecksum) ✓, theme \(newSession.wallThemeIndex), bugs \(newSession.state.bugs.count), mode \(newSession.graphicsMode.rawValue), wall palette \(preferences.wallPalette.displayName)")
         } catch {
             showFatalMessage("Could not load original AquaDot level:\n\(error)")
         }
@@ -96,25 +159,32 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
     private func rebuildScene() {
         removeAllChildren()
-        [mazeRoot, collectibleRoot, wrapRoot, actorRoot, hudRoot, debugRoot].forEach {
+        [mazeRoot, collectibleRoot, wrapRoot, actorRoot, hudRoot, debugRoot, pauseRoot].forEach {
             $0.removeAllChildren()
             addChild($0)
         }
         bugNodes.removeAll()
         playerNode = nil
         currentPlayerAppearance = .normal
-        lastDots = [:]
-        lastMunchDots = []
-        lastGoodie = nil
+        dotNodes.removeAll(keepingCapacity: true)
+        renderedDotKinds.removeAll(keepingCapacity: true)
+        munchNodes.removeAll(keepingCapacity: true)
+        goodieNode = nil
+        renderedGoodieKind = nil
+        renderedGoodiePosition = nil
 
         guard let session, let layout else { return }
-        AquaDotWallRenderer(mode: session.graphicsMode, themeIndex: session.wallThemeIndex)
-            .render(topology: session.topology, layout: layout, into: mazeRoot)
+        AquaDotWallRenderer(
+            mode: session.graphicsMode,
+            themeIndex: session.wallThemeIndex,
+            palette: preferences.wallPalette
+        ).render(topology: session.topology, layout: layout, into: mazeRoot)
         renderWraps(session: session, layout: layout)
         renderActors(session: session, layout: layout)
         renderHUD(session: session)
         renderDebugOverlay(session: session, layout: layout)
-        synchronizeCollectibles(force: true)
+        rebuildCollectibles()
+        renderPauseOverlay(session: session)
         debugRoot.isHidden = !debugVisible
     }
 
@@ -130,7 +200,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         label.verticalAlignmentMode = .center
         label.position = CGPoint(x: size.width / 2, y: size.height / 2)
         addChild(label)
-        print("AquaDot Phase 2 ERROR: \(text)")
+        print("AquaDot Phase 2.1 ERROR: \(text)")
     }
 
     // MARK: - OG/remastered presentation
@@ -168,63 +238,154 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     }
 
     private func rebuildCollectibles() {
-        guard let session, let layout else { return }
+        guard let session else { return }
         collectibleRoot.removeAllChildren()
+        dotNodes.removeAll(keepingCapacity: true)
+        renderedDotKinds.removeAll(keepingCapacity: true)
+        munchNodes.removeAll(keepingCapacity: true)
+        goodieNode = nil
+        renderedGoodieKind = nil
+        renderedGoodiePosition = nil
 
         for (position, kind) in session.state.dots {
-            let node = SKSpriteNode(texture: assets.dotTexture(kind: kind))
-            let side: CGFloat = kind == .normal ? 8 : 15
-            node.size = CGSize(width: side, height: side)
-            node.position = layout.point(for: position)
-            node.zPosition = 15
-            collectibleRoot.addChild(node)
+            addDotNode(at: position, kind: kind)
         }
-
         for position in session.state.remainingMunchDots {
-            let root = SKNode()
-            root.position = layout.point(for: position)
-            root.zPosition = 17
-
-            let outer = SKShapeNode(circleOfRadius: 7.4)
-            outer.strokeColor = SKColor(red: 1, green: 0.05, blue: 0.07, alpha: 1)
-            outer.lineWidth = 2.5
-            outer.fillColor = .clear
-            outer.glowWidth = session.graphicsMode == .remastered ? 3 : 0.6
-            root.addChild(outer)
-
-            let inner = SKShapeNode(circleOfRadius: 3.6)
-            inner.strokeColor = .white
-            inner.lineWidth = 1.5
-            inner.fillColor = .clear
-            root.addChild(inner)
-
-            let pulse = SKAction.sequence([
-                .scale(to: 1.28, duration: 0.34),
-                .scale(to: 0.88, duration: 0.34),
-            ])
-            root.run(.repeatForever(pulse))
-            collectibleRoot.addChild(root)
+            addMunchNode(at: position)
         }
-
-        if let goodie = session.state.goodie {
-            let node = SKSpriteNode(texture: assets.goodieTexture(kind: goodie.kind, multiplier: session.state.multiplier + 1))
-            node.size = CGSize(width: 25, height: 25)
-            node.position = layout.point(for: goodie.position)
-            node.zPosition = 22
-            let pulse = SKAction.sequence([.scale(to: 1.14, duration: 0.4), .scale(to: 0.94, duration: 0.4)])
-            node.run(.repeatForever(pulse))
-            collectibleRoot.addChild(node)
-        }
-
-        lastDots = session.state.dots
-        lastMunchDots = session.state.remainingMunchDots
-        lastGoodie = session.state.goodie
+        synchronizeGoodie()
     }
 
-    private func synchronizeCollectibles(force: Bool = false) {
+    private func addDotNode(at position: GridPosition, kind: AquaDotDotKind) {
+        guard let layout else { return }
+        let node = SKSpriteNode(texture: assets.dotTexture(kind: kind))
+        let side: CGFloat = kind == .normal ? 8 : 15
+        node.size = CGSize(width: side, height: side)
+        node.position = layout.point(for: position)
+        node.zPosition = 15
+        collectibleRoot.addChild(node)
+        dotNodes[position] = node
+        renderedDotKinds[position] = kind
+    }
+
+    private func addMunchNode(at position: GridPosition) {
+        guard let session, let layout else { return }
+        let root = SKNode()
+        root.position = layout.point(for: position)
+        root.zPosition = 17
+
+        let outer = SKShapeNode(circleOfRadius: 7.4)
+        outer.strokeColor = SKColor(red: 1, green: 0.05, blue: 0.07, alpha: 1)
+        outer.lineWidth = 2.5
+        outer.fillColor = .clear
+        outer.glowWidth = session.graphicsMode == .remastered ? 2.2 : 0.4
+        root.addChild(outer)
+
+        let inner = SKShapeNode(circleOfRadius: 3.6)
+        inner.strokeColor = .white
+        inner.lineWidth = 1.5
+        inner.fillColor = .clear
+        root.addChild(inner)
+
+        let pulse = SKAction.sequence([
+            .scale(to: 1.24, duration: 0.34),
+            .scale(to: 0.90, duration: 0.34),
+        ])
+        root.run(.repeatForever(pulse), withKey: "munch.pulse")
+        collectibleRoot.addChild(root)
+        munchNodes[position] = root
+    }
+
+    private func synchronizeGoodie() {
+        guard let session, let layout else { return }
+        let current = session.state.goodie
+
+        if current?.kind == renderedGoodieKind,
+           current?.position == renderedGoodiePosition {
+            return
+        }
+
+        goodieNode?.removeAllActions()
+        goodieNode?.removeFromParent()
+        goodieNode = nil
+        renderedGoodieKind = current?.kind
+        renderedGoodiePosition = current?.position
+
+        guard let goodie = current else { return }
+        let node = SKSpriteNode(
+            texture: assets.goodieTexture(
+                kind: goodie.kind,
+                multiplier: session.state.multiplier + 1
+            )
+        )
+        node.size = CGSize(width: 25, height: 25)
+        node.position = layout.point(for: goodie.position)
+        node.zPosition = 22
+        node.run(
+            .repeatForever(
+                .sequence([
+                    .scale(to: 1.14, duration: 0.4),
+                    .scale(to: 0.94, duration: 0.4),
+                ])
+            ),
+            withKey: "goodie.pulse"
+        )
+        collectibleRoot.addChild(node)
+        goodieNode = node
+    }
+
+    /// Diff the simulation state into persistent nodes without tearing down the
+    /// whole collectible layer. This is intentionally throttled; dynamic dot-kind
+    /// changes grow in discrete goodie-radius steps and do not need a 120 Hz scan.
+    private func synchronizeCollectiblesIncrementally() {
         guard let session else { return }
-        if force || lastDots != session.state.dots || lastMunchDots != session.state.remainingMunchDots || lastGoodie != session.state.goodie {
-            rebuildCollectibles()
+
+        for position in Array(dotNodes.keys) where session.state.dots[position] == nil {
+            dotNodes.removeValue(forKey: position)?.removeFromParent()
+            renderedDotKinds.removeValue(forKey: position)
+        }
+
+        for (position, kind) in session.state.dots {
+            if let node = dotNodes[position] {
+                if renderedDotKinds[position] != kind {
+                    node.texture = assets.dotTexture(kind: kind)
+                    let side: CGFloat = kind == .normal ? 8 : 15
+                    node.size = CGSize(width: side, height: side)
+                    renderedDotKinds[position] = kind
+                }
+            } else {
+                addDotNode(at: position, kind: kind)
+            }
+        }
+
+        for position in Array(munchNodes.keys)
+            where !session.state.remainingMunchDots.contains(position) {
+            munchNodes.removeValue(forKey: position)?.removeFromParent()
+        }
+        for position in session.state.remainingMunchDots where munchNodes[position] == nil {
+            addMunchNode(at: position)
+        }
+
+        synchronizeGoodie()
+    }
+
+    /// Apply high-frequency removals immediately so eating a dot never waits for
+    /// the throttled reconciliation pass.
+    private func applyPresentationEvents(_ events: [AquaDotGameEvent]) {
+        for event in events {
+            switch event {
+            case let .dotEaten(_, position):
+                dotNodes.removeValue(forKey: position)?.removeFromParent()
+                renderedDotKinds.removeValue(forKey: position)
+            case let .munchEaten(position):
+                munchNodes.removeValue(forKey: position)?.removeFromParent()
+            case .goodieSpawned, .goodieEaten:
+                synchronizeGoodie()
+            case .paused:
+                if let session { renderPauseOverlay(session: session) }
+            default:
+                break
+            }
         }
     }
 
@@ -334,7 +495,79 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         bonusLabel?.text = "bonus \(state.bonus)   x\(state.multiplier)"
         livesLabel?.text = "lives \(state.lives)"
         levelLabel?.text = "\(session.levelRecord.originalName)   CRC \(session.maze.storedChecksum) ✓   wall \(session.wallThemeIndex)"
-        modeLabel?.text = "\(session.graphicsMode.rawValue)   [ ] levels   O/R graphics   ` debug"
+        modeLabel?.text = "\(session.graphicsMode.rawValue)   [ ] levels   O/R graphics   P pause   ` debug"
+    }
+
+    // MARK: - Pause / in-game shell
+
+    private func renderPauseOverlay(session: AquaDotGameSession) {
+        pauseRoot.removeAllChildren()
+        guard session.state.isPaused else { return }
+
+        let shade = SKShapeNode(
+            rect: CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        )
+        shade.fillColor = SKColor.black.withAlphaComponent(0.78)
+        shade.strokeColor = .clear
+        shade.zPosition = 400
+        pauseRoot.addChild(shade)
+
+        let panel = SKShapeNode(
+            rectOf: CGSize(width: 390, height: 255),
+            cornerRadius: 22
+        )
+        panel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        panel.fillColor = SKColor.black.withAlphaComponent(0.92)
+        panel.strokeColor = .cyan
+        panel.lineWidth = 2
+        panel.glowWidth = 2
+        panel.zPosition = 410
+        pauseRoot.addChild(panel)
+
+        func addLabel(
+            _ text: String,
+            y: CGFloat,
+            color: SKColor,
+            size: CGFloat,
+            name: String? = nil
+        ) {
+            let label = SKLabelNode(fontNamed: "Helvetica-BoldOblique")
+            label.text = text
+            label.fontSize = size
+            label.fontColor = color
+            label.verticalAlignmentMode = .center
+            label.horizontalAlignmentMode = .center
+            label.position = CGPoint(x: self.size.width / 2, y: y)
+            label.zPosition = 420
+            label.name = name
+            pauseRoot.addChild(label)
+        }
+
+        addLabel("paused", y: size.height / 2 + 74, color: .cyan, size: 34)
+        addLabel("resume", y: size.height / 2 + 16, color: .green, size: 22, name: "pause.resume")
+        addLabel("options", y: size.height / 2 - 28, color: .cyan, size: 20, name: "pause.options")
+        addLabel("return to opening", y: size.height / 2 - 72, color: .red, size: 19, name: "pause.opening")
+    }
+
+    @discardableResult
+    private func handlePauseTap(at point: CGPoint) -> Bool {
+        guard session?.state.isPaused == true else { return false }
+        for node in nodes(at: point) {
+            switch node.name {
+            case "pause.resume":
+                send(.pause, source: .pointer)
+                return true
+            case "pause.options":
+                AquaDotAppController.shared.showOptions(returnTo: .game)
+                return true
+            case "pause.opening":
+                AquaDotAppController.shared.showOpening()
+                return true
+            default:
+                continue
+            }
+        }
+        return true
     }
 
     // MARK: - Debug
@@ -378,8 +611,17 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
     private func refreshDebug(session: AquaDotGameSession) {
         guard debugVisible else { return }
-        let bugs = session.state.bugs.map { "\($0.id):\($0.personality.rawValue)/\($0.mode.rawValue)@\($0.currentNode.x),\($0.currentNode.y)" }.joined(separator: "   ")
-        debugStatusLabel?.text = "P \(session.state.player.currentNode.x),\(session.state.player.currentNode.y)  dots \(session.state.dots.count)  munch \(String(format: "%.1f", session.state.munchTimeRemaining))   \(bugs)"
+        let bugs = session.state.bugs.map {
+            "\($0.id):\($0.personality.rawValue)/\($0.mode.rawValue)@\($0.currentNode.x),\($0.currentNode.y)"
+        }.joined(separator: "   ")
+        debugStatusLabel?.text =
+            "FPS \(String(format: "%.0f", measuredFPS))  nodes \(recursiveNodeCount(self))  audio \(audio.activeVoiceCount)/10  " +
+            "P \(session.state.player.currentNode.x),\(session.state.player.currentNode.y)  dots \(session.state.dots.count)  " +
+            "munch \(String(format: "%.1f", session.state.munchTimeRemaining))   \(bugs)"
+    }
+
+    private func recursiveNodeCount(_ node: SKNode) -> Int {
+        node.children.reduce(1) { $0 + recursiveNodeCount($1) }
     }
 
     private func toggleDebugOverlay() {
@@ -388,6 +630,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     }
 
     private func setGraphicsMode(_ mode: AquaDotGraphicsMode) {
+        preferences.graphicsMode = mode
         guard let session, session.graphicsMode != mode else { return }
         session.graphicsMode = mode
         assets = AquaDotAssetProvider(mode: mode)
@@ -398,6 +641,34 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
     override func update(_ currentTime: TimeInterval) {
         guard let session, let layout else { return }
+
+        performanceFrameCount += 1
+        if performanceWindowStart == 0 {
+            performanceWindowStart = currentTime
+        } else if currentTime - performanceWindowStart >= 1.0 {
+            let elapsed = currentTime - performanceWindowStart
+            measuredFPS = Double(performanceFrameCount) / max(0.001, elapsed)
+            performanceFrameCount = 0
+            performanceWindowStart = currentTime
+        }
+
+        if session.graphicsMode != preferences.graphicsMode {
+            setGraphicsMode(preferences.graphicsMode)
+            return
+        }
+        if lastWallPalette != preferences.wallPalette {
+            lastWallPalette = preferences.wallPalette
+            rebuildScene()
+            return
+        }
+        if let view {
+            let preferred = preferences.attemptHigherFramerate ? 120 : 60
+            if view.preferredFramesPerSecond != preferred {
+                view.preferredFramesPerSecond = preferred
+            }
+        }
+        audio.synchronizePreferences()
+
         guard let previousUpdateTime else { self.previousUpdateTime = currentTime; return }
 
         let frameDelta = min(Self.maximumFrameDelta, max(0, currentTime - previousUpdateTime))
@@ -415,6 +686,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             // repeatedly during contact, so this remains continuous while held.
             damageGlowUntil = currentTime + 0.28
         }
+        applyPresentationEvents(events)
         audio.handle(events)
 
         playerNode?.position = layout.point(for: session.state.player.renderPosition())
@@ -463,9 +735,15 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             }
         }
 
-        synchronizeCollectibles()
+        if currentTime >= nextCollectibleSyncTime {
+            synchronizeCollectiblesIncrementally()
+            nextCollectibleSyncTime = currentTime + 0.10
+        }
         refreshHUD(session: session, time: currentTime)
-        refreshDebug(session: session)
+        if debugVisible, currentTime >= nextDebugRefreshTime {
+            refreshDebug(session: session)
+            nextDebugRefreshTime = currentTime + 0.25
+        }
     }
 
     private func updatePlayerAppearance(session: AquaDotGameSession, time: TimeInterval) {
@@ -511,6 +789,11 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     func handleAquaDotInput(_ event: AquaDotInputEvent) {
         guard event.isPressed, let session else { return }
         if let direction = event.action.movementDirection {
+            // Recovered option: when pretapping is disabled, a direction request
+            // is accepted only when AquaDot is actually at an intersection/node.
+            if !preferences.allowPretapping, session.state.player.nextNode != nil {
+                return
+            }
             session.simulation.request(direction)
             return
         }
@@ -552,9 +835,22 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             case "]": loadCatalogLevel(at: currentCatalogIndex + 1)
             case "o": setGraphicsMode(.original)
             case "r": setGraphicsMode(.remastered)
+            case "m":
+                if session?.state.isPaused == true {
+                    audio.stopAll()
+                    AquaDotAppController.shared.showOpening()
+                } else {
+                    super.keyDown(with: event)
+                }
             default: super.keyDown(with: event)
             }
         }
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        let point = event.location(in: self)
+        if handlePauseTap(at: point) { return }
+        super.mouseDown(with: event)
     }
     #endif
 
@@ -569,6 +865,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         let dx = end.x - start.x
         let dy = end.y - start.y
         if max(abs(dx), abs(dy)) < 12 {
+            if handlePauseTap(at: end) { return }
             send(.confirm, source: .touch)
         } else if abs(dx) > abs(dy) {
             send(dx > 0 ? .moveRight : .moveLeft, source: .touch)

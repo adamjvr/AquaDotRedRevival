@@ -1,25 +1,25 @@
 import Foundation
 
-struct AquaDotPathfinding: Sendable {
+/// Cached shortest-path table over the recovered maze graph.
+///
+/// Phase 2 ran a fresh BFS for nearly every bug decision and scent-distance
+/// query. The original binary contains `setupDistanceMatrix` and predecessor-
+/// matrix helpers, so caching graph distances is both faster and architecturally
+/// closer to the shipped game. Tables are created lazily per start node and then
+/// reused for the rest of the level.
+final class AquaDotPathfinding: @unchecked Sendable {
     let topology: AquaDotMazeTopology
+    private var distanceCache: [GridPosition: [GridPosition: Int]] = [:]
+
+    init(topology: AquaDotMazeTopology) {
+        self.topology = topology
+    }
+
+    var cachedSourceCount: Int { distanceCache.count }
 
     func shortestDistance(from start: GridPosition, to goal: GridPosition) -> Int? {
-        guard start != goal else { return 0 }
-        var distance: [GridPosition: Int] = [start: 0]
-        var queue: [GridPosition] = [start]
-        var cursor = 0
-
-        while cursor < queue.count {
-            let current = queue[cursor]
-            cursor += 1
-            let nextDistance = (distance[current] ?? 0) + 1
-            for edge in topology.edges(from: current) where distance[edge.destination] == nil {
-                if edge.destination == goal { return nextDistance }
-                distance[edge.destination] = nextDistance
-                queue.append(edge.destination)
-            }
-        }
-        return nil
+        if start == goal { return 0 }
+        return distances(from: start)[goal]
     }
 
     func shortestDirection(
@@ -67,5 +67,26 @@ struct AquaDotPathfinding: Sendable {
             node = edge.destination
         }
         return node
+    }
+
+    private func distances(from start: GridPosition) -> [GridPosition: Int] {
+        if let cached = distanceCache[start] { return cached }
+
+        var distance: [GridPosition: Int] = [start: 0]
+        var queue: [GridPosition] = [start]
+        var cursor = 0
+
+        while cursor < queue.count {
+            let current = queue[cursor]
+            cursor += 1
+            let nextDistance = (distance[current] ?? 0) + 1
+            for edge in topology.edges(from: current) where distance[edge.destination] == nil {
+                distance[edge.destination] = nextDistance
+                queue.append(edge.destination)
+            }
+        }
+
+        distanceCache[start] = distance
+        return distance
     }
 }

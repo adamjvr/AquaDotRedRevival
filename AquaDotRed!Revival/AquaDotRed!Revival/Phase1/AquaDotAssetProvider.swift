@@ -1,6 +1,20 @@
 import Foundation
 import SpriteKit
 
+
+private enum AquaDotTextureCache {
+    static let cache = NSCache<NSString, SKTexture>()
+
+    static func texture(named name: String, filtering: SKTextureFilteringMode) -> SKTexture {
+        let key = "\(name)|\(filtering == .nearest ? "nearest" : "linear")" as NSString
+        if let cached = cache.object(forKey: key) { return cached }
+        let texture = SKTexture(imageNamed: name)
+        texture.filteringMode = filtering
+        cache.setObject(texture, forKey: key)
+        return texture
+    }
+}
+
 enum AquaDotPlayerAppearance: String, Sendable {
     case normal = "Normal"
     case munch = "Munch"
@@ -74,21 +88,24 @@ struct AquaDotAssetProvider {
 
     func wallLineAtlasTexture(themeIndex: Int) -> SKTexture {
         let clamped = max(1, min(13, themeIndex))
-        let texture = SKTexture(imageNamed: String(format: "P2_WallLineAtlas_%02d_Original", clamped))
-        texture.filteringMode = mode == .original ? .nearest : .linear
-        return texture
+        return AquaDotTextureCache.texture(
+            named: String(format: "P2_WallLineAtlas_%02d_Original", clamped),
+            filtering: mode == .original ? .nearest : .linear
+        )
     }
 
     private func p2Texture(base: String) -> SKTexture {
         let suffix = mode == .remastered ? "Remastered" : "Original"
-        let texture = SKTexture(imageNamed: "\(base)_\(suffix)")
-        texture.filteringMode = mode == .original ? .nearest : .linear
-        return texture
+        return AquaDotTextureCache.texture(
+            named: "\(base)_\(suffix)",
+            filtering: mode == .original ? .nearest : .linear
+        )
     }
 
     private func legacyTexture(original: String, remastered: String) -> SKTexture {
-        let texture = SKTexture(imageNamed: mode == .remastered ? remastered : original)
-        texture.filteringMode = mode == .original ? .nearest : .linear
-        return texture
+        return AquaDotTextureCache.texture(
+            named: mode == .remastered ? remastered : original,
+            filtering: mode == .original ? .nearest : .linear
+        )
     }
 }
