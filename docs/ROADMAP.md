@@ -59,19 +59,30 @@ Delivered:
 - run-level score/bonus/multiplier/lives carry between mazes;
 - Phase 2.1 compile hotfix folded into source.
 
-## Stabilization follow-up — NEXT 🔧
+## Phase 2.1.2 — Wrap / Teleport Stabilization ✅
 
-**Primary target:** fourth orange level wrap loop.
+**Goal:** fix the orange Ewe (4) loop at the actual simulation boundary instead of hiding it with a timer.
+
+Delivered:
+
+- traced Ewe (4) to a same-bottom `A` wrap pair;
+- made every wrap destination expose an explicit inward direction;
+- force AquaDot through one inward corridor segment after materializing at a wrap destination;
+- gate same-facing held player input until a different direction is chosen;
+- force bugs inward after wraps as well, preventing AI reverse-avoidance from repeatedly selecting the portal;
+- audited the recovered standard corpus: **462 wrap pairs / 924 endpoints**, including **93 same-side pairs**;
+- verified every recovered endpoint has a valid inward traversable neighbor;
+- added a synthetic regression that reproduces the old same-bottom loop and proves only one wrap event fires.
+
+## Stabilization soak — NEXT 🔧
 
 Work:
 
-- trace all wrap transitions on the failing level;
-- reconstruct/strengthen wrap entry/exit state semantics;
-- prevent destination wrap re-trigger without changing maze geometry;
-- regression-test all recovered wrap pairs;
-- run longer multi-level playthroughs looking for progression, collision or pathfinding regressions.
+- play Ewe (3), Ewe (4), Ewe (5) through naturally and deliberately exercise every visible wrap;
+- run longer multi-level playthroughs looking for progression, collision, audio or pathfinding regressions;
+- only then open the Phase 3 scope.
 
-This pass should stay narrow. No giant new subsystem until the current campaign path is stable.
+No giant new subsystem until this campaign path is stable.
 
 ## Phase 3 — Complete Content + Remaster 🧭
 

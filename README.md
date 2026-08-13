@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <strong>Current milestone:</strong> Phase 2.1.1 — playable remaster progression + collision fixes<br>
-  <code>3d664d0</code>
+  <strong>Current milestone:</strong> Phase 2.1.2 — wrap / teleport stabilization<br>
+  <code>based on 445d40f</code>
 </p>
 
 ---
@@ -51,13 +51,14 @@ The screenshots above are from the current native **macOS** build. The runtime i
 
 ## Current state: this is actually a game now
 
-Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major gameplay systems and brought the recovered art/audio into the live game. Phase 2.1 stabilized the renderer/audio architecture and rebuilt the front end. Phase 2.1.1 fixed several issues found by actually playing through the remaster instead of staring at unit tests.
+Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major gameplay systems and brought the recovered art/audio into the live game. Phase 2.1 stabilized the renderer/audio architecture and rebuilt the front end. Phase 2.1.1 fixed several issues found by actually playing through the remaster instead of staring at unit tests. Phase 2.1.2 fixes a deeper original-maze edge case exposed by normal progression: wraps whose two endpoints live on the same or adjacent outer boundaries.
 
 ### Working now
 
 - **205 recovered standard mazes** load from the original data corpus.
 - Original maze CRC/checksum verification is implemented.
 - Fixed-step movement, corridor topology, intersections and wrap connections are live.
+- Wrap exits now materialize inward from the destination boundary instead of treating the paired endpoint like another immediately-active trigger; this fixes the Ewe (4) orange-level teleport loop and the same structural risk across the recovered corpus.
 - Normal dots and Munch dots are playable.
 - Reconstructed Yummy/Yuk/Bonus/Multiplier systems are present.
 - Four reconstructed bug personalities move through the real maze graph.
@@ -75,9 +76,9 @@ Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major 
 
 ### Known rough edges
 
-This is a serious playable milestone, not a finished release. The biggest known issue right now is a **wrap/teleport loop on the fourth orange-themed level**: certain wrap exits can re-trigger a paired wrap repeatedly. Pause and menu handling remain responsive, which points to a wrap state/exit-trigger problem rather than a global simulation lockup.
+This is a serious playable milestone, not a finished release. The fourth orange-themed level wrap loop found during Phase 2.1.1 has now been traced to a real topology/state mismatch: the old simulation preserved the entry direction after teleporting, which is wrong when both endpoints face the same outer boundary. Phase 2.1.2 forces the first segment inward from every destination endpoint and guards same-facing player input until a new direction is chosen.
 
-There are also still areas where the exact original behavior is only partially reconstructed: some speed/timing constants, full wall-piece selection details, final bug tuning, high-score persistence, complete help/scores behavior, some presentation polish, and broad iPad regression testing.
+There are still areas where the exact original behavior is only partially reconstructed: some speed/timing constants, full wall-piece selection details, final bug tuning, high-score persistence, complete help/scores behavior, some presentation polish, broad iPad regression testing, and longer campaign-wide wrap soak testing.
 
 For the living list, see **[Known Issues](docs/KNOWN_ISSUES.md)**.
 
@@ -120,6 +121,7 @@ For the engineering detail, start with:
 - [Phase 2 Architecture](docs/PHASE2_ARCHITECTURE.md)
 - [Phase 2.1 Architecture](docs/PHASE2_1_ARCHITECTURE.md)
 - [Phase 2.1.1 Patch Notes](docs/PHASE2_1_1_PATCH_NOTES.md)
+- [Phase 2.1.2 Wrap Stabilization Notes](docs/PHASE2_1_2_PATCH_NOTES.md)
 - [Platform Architecture](docs/PLATFORM_ARCHITECTURE.md)
 
 ---
@@ -223,12 +225,13 @@ The detailed roadmap lives in **[docs/ROADMAP.md](docs/ROADMAP.md)**. The short 
 | Phase 1 | ✅ Milestone | Authentic original-data runtime |
 | Phase 2 | ✅ Milestone | Behavioral + first OG/remaster gameplay reconstruction |
 | Phase 2.1 | ✅ Milestone | Performance stabilization + original opening/menu + corrected maze hierarchy |
-| Phase 2.1.1 | ✅ Current milestone | Collision, movement animation and automatic campaign progression fixes |
-| Stabilization follow-up | 🔧 Next | Fix orange-level wrap loop and regression-test wrap pairs |
+| Phase 2.1.1 | ✅ Milestone | Collision, movement animation and automatic campaign progression fixes |
+| Phase 2.1.2 | ✅ Current milestone | Wrap-exit state semantics + orange-level teleport-loop fix |
+| Stabilization soak | 🔧 Next | Multi-level regression playthroughs before expanding scope |
 | Phase 3 | 🧭 Planned | Complete content/presentation/remaster pass |
 | Phase 4 | 🧭 Planned | Editor revival + release/platform polish |
 
-The next move is deliberately boring in the best possible way: **fix observed bugs before stacking another giant feature phase on top of them.**
+The immediate move remains deliberately boring in the best possible way: **soak the campaign path and fix observed regressions before stacking another giant feature phase on top of it.**
 
 ---
 
@@ -240,6 +243,7 @@ The next move is deliberately boring in the best possible way: **fix observed bu
 - `docs/PHASE*_ARCHITECTURE.md` — implementation/reverse-engineering architecture.
 - `docs/PHASE*_PATCH_NOTES.md` — milestone-specific changes.
 - `preservation/` — recovered original material kept distinct from new runtime code.
+- `tools/aquadot_wrap_audit.py` — cross-platform wrap-geometry regression audit for all recovered standard mazes.
 
 ---
 

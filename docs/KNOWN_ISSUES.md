@@ -6,23 +6,22 @@ This file tracks observed runtime failures separately from longer-term reverse-e
 
 ### Fourth orange level: wrap / teleport loop
 
-**Status:** open  
+**Status:** fixed in Phase 2.1.2; soak testing ongoing  
 **Observed in:** Phase 2.1.1 milestone
 
-On the fourth level reached through normal automatic progression, some wrap/teleport entries can place AquaDot into a repeated teleport loop.
+The failure was reproduced from the recovered maze geometry rather than treated as a random runtime hang. **Ewe (4)** contains a bottom-to-bottom `A` wrap pair at `(12,30)` and `(27,30)`. Phase 2.1.1 teleported the player to the paired endpoint while preserving the entry direction. Because both endpoints face `down`, that direction was still the destination's outward wrap direction, so the next fixed-step iteration could immediately teleport back.
 
-Important observation: pause and return-to-opening remain responsive while the loop is happening. That strongly suggests the application and fixed-step simulation are still running; the player is repeatedly satisfying wrap-trigger conditions rather than the game entering a hard lock.
+Phase 2.1.2 changes wrap semantics to:
 
-Likely investigation path:
+1. materialize at the paired endpoint;
+2. determine that endpoint's outer-boundary direction;
+3. force the first segment **inward** into the maze;
+4. if held player input still points outward on a same-facing pair, suppress only that direction until the player chooses another;
+5. apply the same forced-inward exit rule to bugs.
 
-1. Identify the exact level record and all `A/B/C/D` wrap pairs.
-2. Log source wrap, destination wrap, player node/progress and movement direction for each transition.
-3. Verify whether the destination position lands inside the paired wrap's immediate trigger condition.
-4. Compare against recovered `MazeWraps.cc` behavior and original wrap validation logic.
-5. Prefer an explicit wrap state such as **must leave destination trigger region before another wrap can fire** over a blind cooldown timer.
-6. Regression-test every wrap pair in the recovered standard maze corpus.
+This is structural rather than Ewe-specific. A corpus audit found **462 wrap pairs / 924 endpoints** in the 205 recovered standard mazes, including **93 pairs whose endpoints share the same boundary**. Every recovered endpoint has a valid inward traversable neighbor.
 
-Do not “fix” this by changing original maze coordinates.
+Remaining work is playthrough/soak validation, not changing original maze coordinates.
 
 ---
 

@@ -152,12 +152,33 @@ struct AquaDotMazeTopology: Sendable {
         adjacency[position] ?? []
     }
 
+    func corridorEdge(from position: GridPosition, direction: AquaDotDirection) -> Edge? {
+        edges(from: position).first { edge in
+            guard edge.direction == direction else { return false }
+            if case .corridor = edge.kind { return true }
+            return false
+        }
+    }
+
     func edge(from position: GridPosition, direction: AquaDotDirection) -> Edge? {
-        // Corridor has priority over wrap. This matters after a wrap transition:
-        // continuing in the same direction should move inward from the far edge,
-        // not immediately teleport back.
+        // Corridor has priority over wrap. This remains important for ordinary
+        // opposite-edge wraps, but Phase 2.1.2 no longer relies on this priority
+        // alone: the simulation explicitly exits every wrap *inward* from the
+        // destination boundary before normal steering resumes.
         let candidates = edges(from: position).filter { $0.direction == direction }
-        return candidates.first(where: { $0.kind == .corridor }) ?? candidates.first
+        return corridorEdge(from: position, direction: direction) ?? candidates.first
+    }
+
+    /// Boundary-facing direction for a wrap endpoint. All 924 endpoints in the
+    /// recovered 205-maze standard corpus sit on an outer boundary.
+    func outwardDirection(at position: GridPosition) -> AquaDotDirection? {
+        Self.outwardDirection(for: position, width: width, height: height)
+    }
+
+    /// Direction AquaDot (or a bug) must travel immediately after appearing at
+    /// a wrap destination. This is the opposite of that endpoint's outward edge.
+    func inwardDirection(at position: GridPosition) -> AquaDotDirection? {
+        outwardDirection(at: position)?.opposite
     }
 
     func neighbor(from position: GridPosition, direction: AquaDotDirection) -> GridPosition? {

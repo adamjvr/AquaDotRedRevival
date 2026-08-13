@@ -35,6 +35,15 @@ final class AquaDotGameSimulation {
     private let pathfinding: AquaDotPathfinding
     private var pendingEvents: [AquaDotGameEvent] = []
     private var damageEventCooldown: Double = 0
+
+    // Phase 2.1.2 wrap gate. Some original mazes intentionally pair two wrap
+    // endpoints on the *same* outer boundary (for example Ewe (4)'s two bottom
+    // A endpoints). Holding the outward direction after teleporting must not
+    // immediately trigger the destination portal again. We force one inward
+    // exit segment and, only when necessary, suppress that same outward request
+    // until the player chooses another direction.
+    private var blockedPlayerWrapDirection: AquaDotDirection?
+
     private var extraLifeThresholds = [25_000, 75_000, 150_000, 250_000]
     private var nextRepeatingExtraLife = 350_000
 
@@ -125,6 +134,9 @@ final class AquaDotGameSimulation {
     }
 
     func request(_ direction: AquaDotDirection) {
+        if let blockedPlayerWrapDirection, direction != blockedPlayerWrapDirection {
+            self.blockedPlayerWrapDirection = nil
+        }
         state.player.requestedDirection = direction
     }
 
@@ -211,7 +223,14 @@ final class AquaDotGameSimulation {
 
     private func beginNextPlayerSegmentIfPossible() -> Bool {
         let position = state.player.currentNode
-        let preferred = state.player.requestedDirection
+        let preferred: AquaDotDirection? = {
+            guard let requested = state.player.requestedDirection else { return nil }
+            // A same-side wrap may leave the physically held/requested direction
+            // pointing straight back out through the portal. Ignore that one
+            // request until the player chooses a different direction.
+            if let blocked = blockedPlayerWrapDirection, requested == blocked { return nil }
+            return requested
+        }()
         let continuing = state.player.movementDirection
 
         let direction: AquaDotDirection?
@@ -235,12 +254,38 @@ final class AquaDotGameSimulation {
             state.player.nextNode = edge.destination
             state.player.segmentProgress = 0
         case let .wrap(id):
+            let entryDirection = direction
             state.player.currentNode = edge.destination
             state.player.nextNode = nil
             state.player.segmentProgress = 0
             recordPlayerArrival(edge.destination)
             collect(at: edge.destination)
             pendingEvents.append(.wrapped(id))
+
+            // A wrap is a boundary crossing, not arrival on a second trigger pad.
+            // Always leave the destination *inward*. This is essential for the
+            // 93 same-side wrap pairs in the recovered corpus and also makes
+            // adjacent-side pairs deterministic.
+            if let outward = topology.outwardDirection(at: edge.destination),
+               let inward = topology.inwardDirection(at: edge.destination),
+               let exitEdge = topology.corridorEdge(from: edge.destination, direction: inward) {
+                state.player.movementDirection = inward
+                state.player.nextNode = exitEdge.destination
+                state.player.segmentProgress = 0
+
+                // Only same-facing entries need an input gate. On a normal
+                // left↔right or top↔bottom wrap, the held entry direction is
+                // already different from the destination's outward trigger.
+                blockedPlayerWrapDirection = (
+                    entryDirection == outward && state.player.requestedDirection == outward
+                ) ? outward : nil
+            } else {
+                // Corpus validation says this should never happen, but fail safe
+                // by stopping rather than teleporting forever if malformed data
+                // ever reaches the runtime.
+                state.player.movementDirection = nil
+                blockedPlayerWrapDirection = nil
+            }
         }
         return true
     }
@@ -416,6 +461,19 @@ final class AquaDotGameSimulation {
             state.bugs[index].currentNode = edge.destination
             state.bugs[index].nextNode = nil
             state.bugs[index].segmentProgress = 0
+
+            // Bugs obey the same portal semantics as AquaDot: materialize at the
+            // paired endpoint, then take the destination's inward corridor. This
+            // prevents AI reverse-avoidance from selecting the wrap edge again on
+            // same-side pairs and quietly looping a bug forever.
+            if let inward = topology.inwardDirection(at: edge.destination),
+               let exitEdge = topology.corridorEdge(from: edge.destination, direction: inward) {
+                state.bugs[index].movementDirection = inward
+                state.bugs[index].nextNode = exitEdge.destination
+            } else {
+                state.bugs[index].movementDirection = nil
+            }
+
             // Strategy guide explicitly notes that bugs generally slow down in warps.
             state.bugs[index].recoveryDelay = max(state.bugs[index].recoveryDelay, tuning.bugWarpSlowdown)
         }
@@ -578,6 +636,7 @@ final class AquaDotGameSimulation {
         state.player.segmentProgress = 0
         state.player.movementDirection = nil
         state.player.requestedDirection = nil
+        blockedPlayerWrapDirection = nil
         state.recentPlayerTrail = [first]
 
         for index in state.bugs.indices {

@@ -1,7 +1,7 @@
 # AquaDotRedRevival — Current Status
 
-**Current milestone:** Phase 2.1.1  
-**Milestone commit:** `3d664d0e5d2e88654a8bd819eafc35593d5ee77a`  
+**Current milestone:** Phase 2.1.2 — Wrap Stabilization  
+**Patch base:** `445d40fa58718bd060858efe4f9dd2968ec23d20`  
 **Primary runtime target:** native macOS  
 **Shared platform target:** iPadOS
 
@@ -10,6 +10,7 @@
 - Recovered standard maze corpus is bundled and loadable.
 - Original maze CRC/checksum verification is implemented.
 - Maze topology, corridor movement, intersections and wrap edges are active.
+- Wrap transitions now force an inward exit segment at the destination endpoint; same-facing held input is gated so a paired endpoint cannot immediately re-trigger itself.
 - Player movement and dot collection work.
 - Normal red AquaDot spins while moving.
 - Bug collision drains energy after the Phase 2.1.1 contact-radius correction.
@@ -28,7 +29,7 @@
 
 ## Known broken / incomplete
 
-- Certain teleports/wraps on the fourth orange-themed level can enter a repeated teleport loop.
+- The Phase 2.1.1 Ewe (4) orange-level teleport loop is fixed in Phase 2.1.2; campaign-wide wrap soak testing is still ongoing.
 - Exact historical `9w/10w` solid-wall piece selection remains incomplete.
 - Some original numeric movement/timing/energy constants remain reconstructed/tuned rather than proven exact.
 - Bug behavior is substantially reconstructed but still needs broad level-by-level tuning/validation.
