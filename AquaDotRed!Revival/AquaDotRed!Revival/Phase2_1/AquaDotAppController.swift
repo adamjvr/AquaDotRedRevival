@@ -33,23 +33,31 @@ final class AquaDotAppController: ObservableObject {
     /// beginning-of-level auto-save persisted across app launches.
     var canResumeGame: Bool { activeGameScene != nil || campaignStore.load() != nil }
 
-    private var defaultCampaignStartIndex: Int {
-        AquaDotOriginalLevelCatalog.standardLevels.firstIndex { $0.originalName == "Ewe (1)" } ?? 0
-    }
-
-    private func makeGameScene(levelIndex: Int, carry: AquaDotRunCarry) -> MazeGameScene {
+    private func makeGameScene(
+        levelIndex: Int? = nil,
+        carry: AquaDotRunCarry,
+        selectorState: AquaDotCampaignSelectorState? = nil
+    ) -> MazeGameScene {
         let scene = MazeGameScene()
         scene.size = CGSize(width: 800, height: 700)
         scene.scaleMode = .aspectFit
         scene.backgroundColor = .black
-        scene.configureCampaignStart(levelIndex: levelIndex, carry: carry)
+        if let levelIndex {
+            scene.configureCampaignStart(
+                levelIndex: levelIndex,
+                carry: carry,
+                selectorState: selectorState
+            )
+        }
         return scene
     }
 
     func startNewGame() {
         activeGameScene?.shutdown()
         campaignStore.clear()
-        activeGameScene = makeGameScene(levelIndex: defaultCampaignStartIndex, carry: .fresh)
+        // A fresh scene invokes the recovered random campaign selector itself.
+        // There is intentionally no fixed Ewe (1) start anymore.
+        activeGameScene = makeGameScene(carry: .fresh)
         route = .game
     }
 
@@ -60,7 +68,11 @@ final class AquaDotAppController: ObservableObject {
         }
 
         if let checkpoint = campaignStore.load() {
-            activeGameScene = makeGameScene(levelIndex: checkpoint.levelIndex, carry: checkpoint.carry)
+            activeGameScene = makeGameScene(
+                levelIndex: checkpoint.levelIndex,
+                carry: checkpoint.carry,
+                selectorState: checkpoint.selectorState
+            )
             route = .game
         } else {
             startNewGame()

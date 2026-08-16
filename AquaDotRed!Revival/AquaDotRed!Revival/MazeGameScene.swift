@@ -58,6 +58,11 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private var previousUpdateTime: TimeInterval?
     private var accumulator = 0.0
     private var currentCatalogIndex = 0
+
+    // Phase 3C: recovered family/variant campaign selector. Its dedicated RNG,
+    // recent-family ring and previous variant are serialized into checkpoints.
+    private var campaignSelector: AquaDotCampaignSelector?
+
     private var debugVisible = false
     private var damageGlowUntil: TimeInterval = 0
     private var nextCollectibleSyncTime: TimeInterval = 0
@@ -76,15 +81,23 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     /// Optional original-style campaign checkpoint configured by the app shell
     /// before SpriteKit attaches the scene. A persisted resume always starts at
     /// the beginning of the saved maze, matching the original binary text.
-    private var configuredCampaignStart: (levelIndex: Int, carry: AquaDotRunCarry)?
+    private var configuredCampaignStart: (
+        levelIndex: Int,
+        carry: AquaDotRunCarry,
+        selectorState: AquaDotCampaignSelectorState?
+    )?
 
     #if os(iOS)
     private var touchStart: CGPoint?
     #endif
 
-    func configureCampaignStart(levelIndex: Int, carry: AquaDotRunCarry) {
+    func configureCampaignStart(
+        levelIndex: Int,
+        carry: AquaDotRunCarry,
+        selectorState: AquaDotCampaignSelectorState? = nil
+    ) {
         guard session == nil else { return }
-        configuredCampaignStart = (levelIndex, carry)
+        configuredCampaignStart = (levelIndex, carry, selectorState)
     }
 
     override func didMove(to view: SKView) {
@@ -112,12 +125,35 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             if let configuredCampaignStart {
                 self.configuredCampaignStart = nil
                 currentCatalogIndex = configuredCampaignStart.levelIndex
-                loadCatalogLevel(at: currentCatalogIndex, carry: configuredCampaignStart.carry, persistCheckpoint: true)
-            } else {
-                if let index = AquaDotOriginalLevelCatalog.standardLevels.firstIndex(where: { $0.originalName == "Ewe (1)" }) {
-                    currentCatalogIndex = index
+
+                if let selectorState = configuredCampaignStart.selectorState {
+                    // Schema-2 resume: restore the exact campaign future.
+                    campaignSelector = AquaDotCampaignSelector(state: selectorState)
+                } else {
+                    // Schema-1 resume: keep the exact saved current maze and
+                    // bootstrap future random selection from that position.
+                    campaignSelector = AquaDotCampaignSelector.bootstrapped(
+                        currentCatalogIndex: currentCatalogIndex,
+                        levelsCleared: configuredCampaignStart.carry.levelsCleared
+                    )
                 }
-                loadCatalogLevel(at: currentCatalogIndex, carry: .fresh, persistCheckpoint: true)
+
+                loadCatalogLevel(
+                    at: currentCatalogIndex,
+                    carry: configuredCampaignStart.carry,
+                    persistCheckpoint: true
+                )
+            } else {
+                // Original new-game path resets level history and immediately
+                // selects a random family/variant. Do not force Ewe (1).
+                var selector = AquaDotCampaignSelector.fresh()
+                currentCatalogIndex = selector.selectNextCatalogIndex()
+                campaignSelector = selector
+                loadCatalogLevel(
+                    at: currentCatalogIndex,
+                    carry: .fresh,
+                    persistCheckpoint: true
+                )
             }
         }
     }
@@ -185,7 +221,8 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             if persistCheckpoint {
                 AquaDotCampaignStore.shared.saveBeginningOfLevel(
                     levelIndex: currentCatalogIndex,
-                    carry: carry
+                    carry: carry,
+                    selectorState: campaignSelector?.state
                 )
             }
 
@@ -498,13 +535,26 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         pendingAutomaticLevelAdvance = true
 
         let catalog = AquaDotOriginalLevelCatalog.standardLevels
-        guard !catalog.isEmpty else { return }
-        let nextIndex = (currentCatalogIndex + 1) % catalog.count
+        guard catalog.count == AquaDotCampaignSelector.standardCatalogCount else {
+            showFatalMessage("Recovered standard catalog does not contain the expected 205 mazes")
+            return
+        }
+
+        var selector = campaignSelector ?? AquaDotCampaignSelector.bootstrapped(
+            currentCatalogIndex: currentCatalogIndex,
+            levelsCleared: session.state.levelsCleared
+        )
+        let nextIndex = selector.selectNextCatalogIndex()
+        campaignSelector = selector
         let carry = AquaDotRunCarry.advancingAfterLevel(from: session.state)
 
-        // Save the NEXT beginning-of-level checkpoint immediately. If the app is
-        // closed during the tween screen, the original behavior resumes next level.
-        AquaDotCampaignStore.shared.saveBeginningOfLevel(levelIndex: nextIndex, carry: carry)
+        // Select and save the NEXT maze before the tween presentation. If the
+        // app closes during the scoreboard/music, Resume cannot reroll it.
+        AquaDotCampaignStore.shared.saveBeginningOfLevel(
+            levelIndex: nextIndex,
+            carry: carry,
+            selectorState: selector.state
+        )
 
         let recoveredTweenDuration = audio.playLevelResult(result.quality)
         let overlay = makeTweenLevelOverlay(result: result)

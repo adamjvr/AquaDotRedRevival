@@ -1,12 +1,14 @@
 import Foundation
 
-/// The original binary explicitly describes its auto-save semantics:
-/// a game saved mid-level resumes from the *beginning of that level*, while a
-/// save made after completion resumes from the beginning of the next level.
-/// This checkpoint intentionally stores campaign-level values only; it is not a
-/// modern save-state of every dot/bug position.
+/// The original binary's beginning-of-level autosave semantics are preserved:
+/// a mid-level save resumes from the beginning of that maze; after completion,
+/// the already-selected next maze is the checkpoint.
+///
+/// Schema 2 adds random-campaign selector state. Schema-1 Phase-3 saves remain
+/// readable and are migrated by MazeGameScene without changing their current maze.
 struct AquaDotCampaignCheckpoint: Codable, Equatable, Sendable {
-    static let schemaVersion = 1
+    static let schemaVersion = 2
+    static let readableSchemaVersions: Set<Int> = [1, 2]
 
     var version: Int = schemaVersion
     var levelIndex: Int
@@ -15,6 +17,7 @@ struct AquaDotCampaignCheckpoint: Codable, Equatable, Sendable {
     var lives: Int
     var levelsCleared: Int
     var savedAt: Date
+    var selectorState: AquaDotCampaignSelectorState? = nil
 
     var carry: AquaDotRunCarry {
         AquaDotRunCarry(
@@ -44,21 +47,27 @@ final class AquaDotCampaignStore {
     func load() -> AquaDotCampaignCheckpoint? {
         guard let data = defaults.data(forKey: key),
               let checkpoint = try? decoder.decode(AquaDotCampaignCheckpoint.self, from: data),
-              checkpoint.version == AquaDotCampaignCheckpoint.schemaVersion else {
+              AquaDotCampaignCheckpoint.readableSchemaVersions.contains(checkpoint.version) else {
             return nil
         }
         return checkpoint
     }
 
     @discardableResult
-    func saveBeginningOfLevel(levelIndex: Int, carry: AquaDotRunCarry) -> AquaDotCampaignCheckpoint {
+    func saveBeginningOfLevel(
+        levelIndex: Int,
+        carry: AquaDotRunCarry,
+        selectorState: AquaDotCampaignSelectorState? = nil
+    ) -> AquaDotCampaignCheckpoint {
         let checkpoint = AquaDotCampaignCheckpoint(
+            version: AquaDotCampaignCheckpoint.schemaVersion,
             levelIndex: max(0, levelIndex),
             score: max(0, carry.score),
             multiplier: max(1, carry.multiplier),
             lives: max(0, carry.lives),
             levelsCleared: max(0, carry.levelsCleared),
-            savedAt: Date()
+            savedAt: Date(),
+            selectorState: selectorState
         )
         if let data = try? encoder.encode(checkpoint) {
             defaults.set(data, forKey: key)
