@@ -1,66 +1,33 @@
 # Known Issues
 
-This file tracks observed runtime failures separately from longer-term reverse-engineering targets.
+## Current Phase 3 fidelity targets
 
-## P0/P1 — observed gameplay bugs
+### Skill weights are reconstructed, not yet exact
+The strategy guide explicitly provides the end-level formula and the factors that raise/lower Skill, but not every original numeric weight. `AquaDotSkillScoring` keeps the provisional weights isolated until binary evidence can replace them.
 
-### Fourth orange level: wrap / teleport loop
-
-**Status:** fixed in Phase 2.1.2; soak testing ongoing  
-**Observed in:** Phase 2.1.1 milestone
-
-The failure was reproduced from the recovered maze geometry rather than treated as a random runtime hang. **Ewe (4)** contains a bottom-to-bottom `A` wrap pair at `(12,30)` and `(27,30)`. Phase 2.1.1 teleported the player to the paired endpoint while preserving the entry direction. Because both endpoints face `down`, that direction was still the destination's outward wrap direction, so the next fixed-step iteration could immediately teleport back.
-
-Phase 2.1.2 changes wrap semantics to:
-
-1. materialize at the paired endpoint;
-2. determine that endpoint's outer-boundary direction;
-3. force the first segment **inward** into the maze;
-4. if held player input still points outward on a same-facing pair, suppress only that direction until the player chooses another;
-5. apply the same forced-inward exit rule to bugs.
-
-This is structural rather than Ewe-specific. A corpus audit found **462 wrap pairs / 924 endpoints** in the 205 recovered standard mazes, including **93 pairs whose endpoints share the same boundary**. Every recovered endpoint has a valid inward traversable neighbor.
-
-Remaining work is playthrough/soak validation, not changing original maze coordinates.
-
----
-
-## Reverse-engineering / fidelity targets
+### Original level-selection sequencing
+The original binary contains weighted/random level-selection machinery. Some tables/constants are recovered, but the full progression contract is not yet proven. The current deterministic Ewe-based progression remains useful for regression testing and is not labeled as the final historical sequence.
 
 ### Exact solid-wall sub-piece selection
+The four `9w/10w` source atlas families and `_drawMazePiece` type/index architecture are recovered, but the complete call-site selection logic is not yet reduced to a trustworthy modern table.
 
-The corrected renderer now distinguishes large `X` structures from numeric thin-line walls, but the complete historical `9w/10w` `_drawMazePiece` selection table is not yet reconstructed.
+### Four bug types remain missing
+Hunter, Blocker, Sneaker and Hound Dog are live. Protector, Mantis, Hermit and Neon remain Phase 3 reconstruction work.
 
-Current behavior is a faithful scalable reconstruction, not a claim of pixel-exact equivalence for every solid-wall sub-piece.
+### Infection / sprout / cure systems
+Recovered `MazeSprouts.cc` / `MazeDots.cc` evidence proves these systems existed, but they are not yet fully implemented in the revival.
 
-### Exact gameplay constants
+### High-score name entry
+Scores now persist and the original Today’s Best / Best Scores Ever headings are live. Until the original type-your-name flow is reconstructed, completed runs are recorded as `anonymous`.
 
-Several speed, timer, energy and behavior constants are reconstructed from observed behavior and surviving evidence. They should remain isolated/tunable until stronger binary evidence is recovered.
+## Fixed observed gameplay failures
 
-### Bug AI tuning
-
-The architectural behavior is in place, but the four personalities should be validated across a wider sample of original levels, especially around wraps, intersections, Munch recovery and trail-following behavior.
-
----
-
-## Presentation / app completeness
-
-- High-score persistence and complete Scores presentation are not finished.
-- Help/About text/presentation is functional but not final-release quality.
-- Menu/front-end animation can still be pushed closer to the original.
-- iPad layout/touch/controller behavior needs wider hardware testing.
-- Final save/preferences/controller/accessibility/release packaging work remains future work.
-
----
+- Phase 2 progressive CoreAudio/render slowdown: fixed by Phase 2.1 architecture.
+- Visible bug overlap without damage: fixed in Phase 2.1.1.
+- Clearing a maze without progressing: fixed in Phase 2.1.1.
+- Ewe (4) same-bottom wrap ping-pong loop: fixed structurally in Phase 2.1.2.
+- Zero-life infinite respawn: fixed in Phase 3.
+- Bonus leaking into later levels instead of being consumed at end-of-level: fixed in Phase 3.
 
 ## Reporting a regression
-
-Useful bug reports include:
-
-- maze name / progression number;
-- graphics mode;
-- exact movement direction into the failure;
-- whether pause/menu remains responsive;
-- backtick overlay FPS/node/audio values;
-- terminal/Xcode runtime log;
-- screenshot or short capture when visual state matters.
+Include maze name, graphics mode, movement/action leading into the failure, whether pause/menu remains responsive, backtick FPS/node/audio values, terminal/Xcode log, and a screenshot/capture when visual state matters.

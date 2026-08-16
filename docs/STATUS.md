@@ -1,44 +1,40 @@
-# AquaDotRedRevival — Current Status
+# AquaDotRedRevival Status
 
-**Current milestone:** Phase 2.1.2 — Wrap Stabilization  
-**Patch base:** `445d40fa58718bd060858efe4f9dd2968ec23d20`  
+**Current milestone:** Phase 3 — Campaign Authenticity Foundation  
+**Base:** Phase 2.1.2 (`683c769`)  
 **Primary runtime target:** native macOS  
 **Shared platform target:** iPadOS
 
 ## Working
 
-- Recovered standard maze corpus is bundled and loadable.
-- Original maze CRC/checksum verification is implemented.
-- Maze topology, corridor movement, intersections and wrap edges are active.
-- Wrap transitions now force an inward exit segment at the destination endpoint; same-facing held input is gated so a paired endpoint cannot immediately re-trigger itself.
-- Player movement and dot collection work.
-- Normal red AquaDot spins while moving.
-- Bug collision drains energy after the Phase 2.1.1 contact-radius correction.
-- Four reconstructed bug personalities are live.
-- Normal dots, Munch dots and reconstructed special/goodie systems are present.
-- Clearing the required dot field triggers automatic next-level progression.
-- Score, bonus, multiplier and lives carry across normal level transitions.
-- Original and Remastered graphics modes are available.
-- Recovered player, bug, dot, HUD, opening/menu and wall artwork is integrated.
-- Corrected maze visual hierarchy: large glossy `X` structures + recovered thin numeric wall frames.
-- Opening/main menu, pause, options, help/about routes and return-to-opening flow work.
-- Persistent pooled `AVAudioEngine` runtime replaces per-dot `AVAudioPlayer` allocation.
-- Collectible rendering is incremental.
-- Pathfinding distance results are cached.
-- Debug overlay exposes FPS, SpriteKit node count and pooled audio voice activity.
+- All **205 recovered standard mazes** are bundled and CRC-verifiable.
+- Fixed-step topology, collisions, bug movement, same/adjacent-side wraps and automatic progression work.
+- Recovered/remastered player, bug, collectible, wall, HUD and opening/menu graphics are live.
+- Persistent pooled AVAudioEngine playback and incremental rendering remain stable.
+- Normal/Munch dots and reconstructed Yummy/Yuk/Bonus/Multiplier systems are playable.
+- Bug contact drains Energy; zero Energy costs a life.
+- **Zero lives now ends the run with a recovered-art Game Over presentation.**
+- End-level Score now uses the documented **(Bonus + Skill) × Multiplier** structure.
+- Bonus is consumed per level instead of leaking into later mazes.
+- Recovered tween-level label/exclamation artwork is used for the level summary.
+- Original-style beginning-of-level auto-save/resume persists across app launches.
+- Post-level checkpoints target the next maze immediately, matching recovered resume strings.
+- New Game erases the previous auto-save.
+- High scores persist and populate recovered **Today’s Best / Best Scores Ever** presentation.
+- `tools/aquadot_campaign_audit.py` validates the whole recovered campaign corpus.
+- `tools/aquadot_wall_piece_audit.py` inventories the four recovered `_drawMazePiece` atlas families.
 
-## Known broken / incomplete
+## Known incomplete / reconstructed
 
-- The Phase 2.1.1 Ewe (4) orange-level teleport loop is fixed in Phase 2.1.2; campaign-wide wrap soak testing is still ongoing.
-- Exact historical `9w/10w` solid-wall piece selection remains incomplete.
-- Some original numeric movement/timing/energy constants remain reconstructed/tuned rather than proven exact.
-- Bug behavior is substantially reconstructed but still needs broad level-by-level tuning/validation.
-- Scores route exists, but complete high-score persistence/presentation is not finished.
-- Help/About/options presentation still needs final release polish.
-- Full campaign-wide regression testing is ongoing.
-- iPadOS requires broader device/layout/input validation.
-- Editor revival has not started as a production feature.
+- Exact original numeric Skill weights are not yet recovered; current weights are isolated and explicitly provisional.
+- Exact original random level-selection sequence is still under binary RE; the current Ewe-based progression path remains deterministic for testing.
+- Full `9w/10w` solid-wall `mazePieceIndex[4]` selection is not yet solved.
+- High-score name entry is not reconstructed yet; current Game Over runs record as `anonymous`.
+- Only four of the eight guide-documented bug types are implemented.
+- Infection/sprout/cure systems remain a major Phase 3 target.
+- Some timing/energy constants remain tuned reconstructions.
+- iPadOS needs broader device/input/layout regression testing.
 
 ## Current quality bar
 
-The macOS build is now a **playable preservation/remaster milestone**, not merely a rendering prototype. The next work should favor regression fixes and authenticity over piling on unrelated features.
+The project now has a persistent campaign lifecycle, not just a collection of playable mazes. The next Phase 3 work should deepen authenticity without weakening the preservation/regression boundary.

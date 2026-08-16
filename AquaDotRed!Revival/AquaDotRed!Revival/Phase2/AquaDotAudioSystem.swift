@@ -129,6 +129,9 @@ final class AquaDotAudioSystem {
                 play("OGS_Loops_warping_start", volume: 0.65)
             case .levelCompleted:
                 break
+            case .gameOver:
+                stopSpecialLoop()
+                stopMusic()
             case let .paused(paused):
                 if paused { play("OGS_Speak_pause", volume: 0.75) }
             }

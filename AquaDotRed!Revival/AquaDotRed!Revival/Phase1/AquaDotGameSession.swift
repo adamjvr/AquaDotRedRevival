@@ -7,14 +7,16 @@ struct AquaDotRunCarry: Equatable, Sendable {
     var bonus: Int
     var multiplier: Int
     var lives: Int
+    var levelsCleared: Int
 
-    static let fresh = AquaDotRunCarry(score: 0, bonus: 0, multiplier: 1, lives: 3)
+    static let fresh = AquaDotRunCarry(score: 0, bonus: 0, multiplier: 1, lives: 3, levelsCleared: 0)
 
-    init(score: Int, bonus: Int, multiplier: Int, lives: Int) {
+    init(score: Int, bonus: Int, multiplier: Int, lives: Int, levelsCleared: Int = 0) {
         self.score = max(0, score)
         self.bonus = max(0, bonus)
         self.multiplier = max(1, multiplier)
         self.lives = max(0, lives)
+        self.levelsCleared = max(0, levelsCleared)
     }
 
     init(state: AquaDotGameState) {
@@ -22,7 +24,21 @@ struct AquaDotRunCarry: Equatable, Sendable {
             score: state.score,
             bonus: state.bonus,
             multiplier: state.multiplier,
-            lives: state.lives
+            lives: state.lives,
+            levelsCleared: state.levelsCleared
+        )
+    }
+
+    /// Carry used after a successfully completed maze. The strategy guide is
+    /// explicit that Bonus is consumed by the end-level calculation, so it is
+    /// level-local and must not leak into the next maze.
+    static func advancingAfterLevel(from state: AquaDotGameState) -> AquaDotRunCarry {
+        AquaDotRunCarry(
+            score: state.score,
+            bonus: 0,
+            multiplier: state.multiplier,
+            lives: state.lives,
+            levelsCleared: state.levelsCleared
         )
     }
 }
@@ -52,7 +68,8 @@ final class AquaDotGameSession {
             initialScore: carry.score,
             initialBonus: carry.bonus,
             initialMultiplier: carry.multiplier,
-            initialLives: carry.lives
+            initialLives: carry.lives,
+            initialLevelsCleared: carry.levelsCleared
         )
         self.graphicsMode = graphicsMode
 

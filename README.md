@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <strong>Current milestone:</strong> Phase 2.1.2 — wrap / teleport stabilization<br>
-  <code>based on 445d40f</code>
+  <strong>Current milestone:</strong> Phase 3 — campaign authenticity foundation<br>
+  <code>based on 683c769</code>
 </p>
 
 ---
@@ -51,7 +51,7 @@ The screenshots above are from the current native **macOS** build. The runtime i
 
 ## Current state: this is actually a game now
 
-Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major gameplay systems and brought the recovered art/audio into the live game. Phase 2.1 stabilized the renderer/audio architecture and rebuilt the front end. Phase 2.1.1 fixed several issues found by actually playing through the remaster instead of staring at unit tests. Phase 2.1.2 fixes a deeper original-maze edge case exposed by normal progression: wraps whose two endpoints live on the same or adjacent outer boundaries.
+Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major gameplay systems and brought the recovered art/audio into the live game. The Phase 2.1.x line stabilized the renderer, audio, front end, collision, progression, and wrap behavior. **Phase 3 now turns that stable playable reconstruction into a real campaign shell:** end-level scoring, Game Over, original-style auto-save/resume, persistent high scores, and campaign-wide regression tooling.
 
 ### Working now
 
@@ -65,7 +65,11 @@ Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major 
 - Bug contact now actually drains AquaDot energy.
 - The normal red AquaDot visibly spins while moving.
 - Clearing the required dot field automatically advances to the next recovered level.
-- Score, bonus, multiplier and lives survive normal level transitions.
+- Level completion now calculates the documented **(Bonus + Skill) × Multiplier** award and shows a recovered-art tween-level summary.
+- Running out of lives now produces a real **Game Over** instead of respawning forever at zero lives.
+- Beginning-of-level auto-saves persist across app launches with semantics recovered from the original binary.
+- The Scores screen now has durable **Today’s Best / Best Scores Ever** tables using recovered heading artwork.
+- Score, multiplier and lives survive normal level transitions; **Bonus is now correctly level-local and consumed by the recovered end-level formula**.
 - Original and Remastered visual modes share identical gameplay coordinates/state.
 - Recovered AquaDot, bug, collectible, HUD, opening/menu and wall assets are integrated.
 - The maze renderer distinguishes the original **large glossy `X` wall structures** from the recovered **thin numeric wall-frame system**.
@@ -78,7 +82,7 @@ Phase 1 gave the project an authentic-data runtime. Phase 2 reconstructed major 
 
 This is a serious playable milestone, not a finished release. The fourth orange-themed level wrap loop found during Phase 2.1.1 has now been traced to a real topology/state mismatch: the old simulation preserved the entry direction after teleporting, which is wrong when both endpoints face the same outer boundary. Phase 2.1.2 forces the first segment inward from every destination endpoint and guards same-facing player input until a new direction is chosen.
 
-There are still areas where the exact original behavior is only partially reconstructed: some speed/timing constants, full wall-piece selection details, final bug tuning, high-score persistence, complete help/scores behavior, some presentation polish, broad iPad regression testing, and longer campaign-wide wrap soak testing.
+There are still areas where exact original behavior is only partially reconstructed: the numeric **Skill** weights, original random level-selection sequencing, full `9w/10w` wall-piece selection, the original high-score name-entry screen, the remaining four full-version bug types, infection/sprout/cure behavior, some timing constants, and broader iPad regression testing. Phase 3 keeps those gaps explicit rather than silently inventing certainty.
 
 For the living list, see **[Known Issues](docs/KNOWN_ISSUES.md)**.
 
@@ -122,6 +126,9 @@ For the engineering detail, start with:
 - [Phase 2.1 Architecture](docs/PHASE2_1_ARCHITECTURE.md)
 - [Phase 2.1.1 Patch Notes](docs/PHASE2_1_1_PATCH_NOTES.md)
 - [Phase 2.1.2 Wrap Stabilization Notes](docs/PHASE2_1_2_PATCH_NOTES.md)
+- [Phase 3 Campaign Architecture](docs/PHASE3_ARCHITECTURE.md)
+- [Phase 3 Patch Notes](docs/PHASE3_PATCH_NOTES.md)
+- [Phase 3 Wall Renderer RE](docs/PHASE3_WALL_RENDERER_RE.md)
 - [Platform Architecture](docs/PLATFORM_ARCHITECTURE.md)
 
 ---
@@ -226,12 +233,12 @@ The detailed roadmap lives in **[docs/ROADMAP.md](docs/ROADMAP.md)**. The short 
 | Phase 2 | ✅ Milestone | Behavioral + first OG/remaster gameplay reconstruction |
 | Phase 2.1 | ✅ Milestone | Performance stabilization + original opening/menu + corrected maze hierarchy |
 | Phase 2.1.1 | ✅ Milestone | Collision, movement animation and automatic campaign progression fixes |
-| Phase 2.1.2 | ✅ Current milestone | Wrap-exit state semantics + orange-level teleport-loop fix |
-| Stabilization soak | 🔧 Next | Multi-level regression playthroughs before expanding scope |
-| Phase 3 | 🧭 Planned | Complete content/presentation/remaster pass |
+| Phase 2.1.2 | ✅ Milestone | Wrap-exit state semantics + orange-level teleport-loop fix |
+| Phase 3 | 🔥 Current | Campaign authenticity: Game Over, tween scoring, autosave/resume, high scores, corpus audits |
+| Phase 3 continuation | 🔧 Next | Exact wall-piece selection, all 8 bug types, infection/sprout/cure, deeper timing/audio fidelity |
 | Phase 4 | 🧭 Planned | Editor revival + release/platform polish |
 
-The immediate move remains deliberately boring in the best possible way: **soak the campaign path and fix observed regressions before stacking another giant feature phase on top of it.**
+Phase 3 now has a campaign lifecycle worth protecting. The next move is deeper authenticity: **finish the solid-wall renderer, expand the full bug roster, reconstruct infection/sprout/cure behavior, and keep binary-matching the remaining provisional constants.**
 
 ---
 
@@ -244,6 +251,8 @@ The immediate move remains deliberately boring in the best possible way: **soak 
 - `docs/PHASE*_PATCH_NOTES.md` — milestone-specific changes.
 - `preservation/` — recovered original material kept distinct from new runtime code.
 - `tools/aquadot_wrap_audit.py` — cross-platform wrap-geometry regression audit for all recovered standard mazes.
+- `tools/aquadot_campaign_audit.py` — Phase 3 CRC/topology/start/wrap/grouping campaign audit.
+- `tools/aquadot_wall_piece_audit.py` — preserved 9w/10w wall-atlas forensic inventory.
 
 ---
 

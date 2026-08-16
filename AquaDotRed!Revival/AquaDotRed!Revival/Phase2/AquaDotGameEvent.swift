@@ -75,5 +75,6 @@ enum AquaDotGameEvent: Equatable, Sendable {
     case lifeGained
     case wrapped(Character)
     case levelCompleted
+    case gameOver(finalScore: Int, levelsCleared: Int)
     case paused(Bool)
 }

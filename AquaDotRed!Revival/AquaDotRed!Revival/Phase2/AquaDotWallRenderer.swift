@@ -84,14 +84,22 @@ final class AquaDotWallRenderer {
 
         renderSolidNetwork(blocked, layout: layout, into: root)
 
-        for cell in topology.wallCells {
-            guard case let .wall(geometry) = cell.kind else { continue }
-            renderOriginalLineFrame(
-                geometry,
-                center: layout.wallCellCenter(x: cell.x, y: cell.y),
-                pitch: layout.pitch,
+        if mode == .remastered {
+            renderRemasteredLineNetwork(
+                topology.wallCells,
+                layout: layout,
                 into: root
             )
+        } else {
+            for cell in topology.wallCells {
+                guard case let .wall(geometry) = cell.kind else { continue }
+                renderOriginalLineFrame(
+                    geometry,
+                    center: layout.wallCellCenter(x: cell.x, y: cell.y),
+                    pitch: layout.pitch,
+                    into: root
+                )
+            }
         }
     }
 
@@ -136,6 +144,7 @@ final class AquaDotWallRenderer {
         shadow.lineWidth = width + 3.8
         shadow.lineCap = .round
         shadow.lineJoin = .round
+        shadow.isAntialiased = true
         shadow.position = CGPoint(x: 1.35, y: -1.45)
         shadow.zPosition = 1.0
         root.addChild(shadow)
@@ -145,6 +154,7 @@ final class AquaDotWallRenderer {
         body.lineWidth = width
         body.lineCap = .round
         body.lineJoin = .round
+        body.isAntialiased = true
         body.glowWidth = mode == .remastered ? 0.9 : 0
         body.zPosition = 1.05
         root.addChild(body)
@@ -156,6 +166,7 @@ final class AquaDotWallRenderer {
         highlight.lineWidth = width * 0.27
         highlight.lineCap = .round
         highlight.lineJoin = .round
+        highlight.isAntialiased = true
         highlight.position = CGPoint(x: -width * 0.16, y: width * 0.18)
         highlight.zPosition = 1.10
         root.addChild(highlight)
@@ -165,6 +176,7 @@ final class AquaDotWallRenderer {
         lowerShade.lineWidth = width * 0.22
         lowerShade.lineCap = .round
         lowerShade.lineJoin = .round
+        lowerShade.isAntialiased = true
         lowerShade.position = CGPoint(x: width * 0.17, y: -width * 0.18)
         lowerShade.zPosition = 1.11
         root.addChild(lowerShade)
@@ -176,9 +188,84 @@ final class AquaDotWallRenderer {
             node.fillColor = material.body
             node.strokeColor = material.bright.withAlphaComponent(0.72)
             node.lineWidth = max(1, side * 0.12)
+            node.isAntialiased = true
             node.zPosition = 1.08
             root.addChild(node)
         }
+    }
+
+    /// Retina/remastered numeric-wall renderer.
+    ///
+    /// The four direction bits are recovered game data, so this changes only
+    /// presentation fidelity: each wall reaches the same N/E/S/W positions as
+    /// the original 40x40 atlas frame, but SpriteKit rasterizes the vector path
+    /// at the display backing scale instead of enlarging the recovered pixels.
+    private func renderRemasteredLineNetwork(
+        _ cells: [AquaDotWallCell],
+        layout: AquaDotMazeLayout,
+        into root: SKNode
+    ) {
+        let path = CGMutablePath()
+        let reach = layout.pitch
+
+        for cell in cells {
+            guard case let .wall(geometry) = cell.kind else { continue }
+            let center = layout.wallCellCenter(x: cell.x, y: cell.y)
+
+            func arm(dx: CGFloat, dy: CGFloat) {
+                path.move(to: center)
+                path.addLine(
+                    to: CGPoint(
+                        x: center.x + dx * reach,
+                        y: center.y + dy * reach
+                    )
+                )
+            }
+
+            if geometry.contains(.north) { arm(dx: 0, dy: 1) }
+            if geometry.contains(.east)  { arm(dx: 1, dy: 0) }
+            if geometry.contains(.south) { arm(dx: 0, dy: -1) }
+            if geometry.contains(.west)  { arm(dx: -1, dy: 0) }
+        }
+
+        let bloom = SKShapeNode(path: path)
+        bloom.strokeColor = material.body.withAlphaComponent(0.22)
+        bloom.lineWidth = 4.0
+        bloom.glowWidth = 3.5
+        bloom.lineCap = .round
+        bloom.lineJoin = .round
+        bloom.isAntialiased = true
+        bloom.zPosition = 1.94
+        root.addChild(bloom)
+
+        let shadow = SKShapeNode(path: path)
+        shadow.strokeColor = material.shadow.withAlphaComponent(0.74)
+        shadow.lineWidth = 2.0
+        shadow.lineCap = .round
+        shadow.lineJoin = .round
+        shadow.isAntialiased = true
+        shadow.position = CGPoint(x: 0.65, y: -0.65)
+        shadow.zPosition = 1.96
+        root.addChild(shadow)
+
+        let line = SKShapeNode(path: path)
+        line.strokeColor = material.body
+        line.lineWidth = 1.9
+        line.lineCap = .round
+        line.lineJoin = .round
+        line.isAntialiased = true
+        line.zPosition = 2.0
+        root.addChild(line)
+
+        let highlight = SKShapeNode(path: path)
+        highlight.strokeColor = material.bright.withAlphaComponent(0.72)
+        highlight.lineWidth = 0.75
+        highlight.lineCap = .round
+        highlight.lineJoin = .round
+        highlight.isAntialiased = true
+        highlight.position = CGPoint(x: -0.30, y: 0.30)
+        highlight.zPosition = 2.02
+        root.addChild(highlight)
     }
 
     /// Exact recovered numeric-wall pixel frame. There is deliberately no thick

@@ -43,6 +43,11 @@ struct AquaDotGameState: Equatable, Sendable {
     var multiplier: Int
     var energy: Double
     var lives: Int
+    var levelsCleared: Int
+
+    /// Campaign-authenticity metrics used only for the recovered end-level
+    /// Skill/Bonus presentation. Gameplay behavior does not depend on them.
+    var levelStats: AquaDotLevelStats
 
     var availableYummyPower: AquaDotYummyPower?
     var activeSpecialPower: AquaDotSpecialPower?
@@ -54,6 +59,7 @@ struct AquaDotGameState: Equatable, Sendable {
     var munchExtraLifeAwardedThisLevel: Bool
 
     var levelCompleted: Bool
+    var gameOver: Bool
     var isPaused: Bool
 
     var remainingDots: Set<GridPosition> { Set(dots.keys) }

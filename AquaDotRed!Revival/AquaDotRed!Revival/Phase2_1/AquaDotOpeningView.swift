@@ -95,13 +95,6 @@ struct AquaDotOpeningView: View {
                         }
                     }
 
-                    if controller.canResumeGame {
-                        Button("start new game") { controller.startNewGame() }
-                            .buttonStyle(.plain)
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Color.red.opacity(0.86))
-                    }
-
                     AquaDotOGMenuButton(baseName: "Scores", mode: preferences.graphicsMode) {
                         controller.showScores()
                     }

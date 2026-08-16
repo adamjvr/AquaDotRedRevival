@@ -26,24 +26,44 @@ final class AquaDotAppController: ObservableObject {
 
     private(set) var activeGameScene: MazeGameScene?
     private var returnRoute: AquaDotAppRoute = .opening
+    private let campaignStore = AquaDotCampaignStore.shared
+    private let highScoreStore = AquaDotHighScoreStore.shared
 
-    var canResumeGame: Bool { activeGameScene != nil }
+    /// True for either an in-memory paused session or the original-style
+    /// beginning-of-level auto-save persisted across app launches.
+    var canResumeGame: Bool { activeGameScene != nil || campaignStore.load() != nil }
 
-    func startNewGame() {
-        activeGameScene?.shutdown()
+    private var defaultCampaignStartIndex: Int {
+        AquaDotOriginalLevelCatalog.standardLevels.firstIndex { $0.originalName == "Ewe (1)" } ?? 0
+    }
+
+    private func makeGameScene(levelIndex: Int, carry: AquaDotRunCarry) -> MazeGameScene {
         let scene = MazeGameScene()
         scene.size = CGSize(width: 800, height: 700)
         scene.scaleMode = .aspectFit
         scene.backgroundColor = .black
-        activeGameScene = scene
+        scene.configureCampaignStart(levelIndex: levelIndex, carry: carry)
+        return scene
+    }
+
+    func startNewGame() {
+        activeGameScene?.shutdown()
+        campaignStore.clear()
+        activeGameScene = makeGameScene(levelIndex: defaultCampaignStartIndex, carry: .fresh)
         route = .game
     }
 
     func resumeGame() {
-        if activeGameScene == nil {
-            startNewGame()
-        } else {
+        if activeGameScene != nil {
             route = .game
+            return
+        }
+
+        if let checkpoint = campaignStore.load() {
+            activeGameScene = makeGameScene(levelIndex: checkpoint.levelIndex, carry: checkpoint.carry)
+            route = .game
+        } else {
+            startNewGame()
         }
     }
 
@@ -56,6 +76,22 @@ final class AquaDotAppController: ObservableObject {
         activeGameScene?.shutdown()
         activeGameScene = nil
         route = .opening
+    }
+
+    /// Commit the terminal run immediately when Game Over occurs. Doing this
+    /// before the presentation delay means force-quitting on the Game Over screen
+    /// cannot resurrect the dead run from its last auto-save.
+    func commitGameOver(finalScore: Int, levelsCleared: Int) {
+        highScoreStore.record(score: finalScore, levelsCleared: levelsCleared)
+        campaignStore.clear()
+    }
+
+    /// Called after the recovered Game Over artwork has had time to display.
+    func finishGameOverPresentation() {
+        activeGameScene?.shutdown()
+        activeGameScene = nil
+        returnRoute = .opening
+        route = .scores
     }
 
     func showOptions(returnTo: AquaDotAppRoute? = nil) {

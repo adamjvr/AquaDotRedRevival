@@ -36,6 +36,10 @@ final class AquaDotGameSimulation {
     private var pendingEvents: [AquaDotGameEvent] = []
     private var damageEventCooldown: Double = 0
 
+    /// Populated exactly once when the required dot field is cleared. The scene
+    /// consumes this for the recovered tween-level score presentation.
+    private(set) var lastLevelResult: AquaDotLevelResult?
+
     // Phase 2.1.2 wrap gate. Some original mazes intentionally pair two wrap
     // endpoints on the *same* outer boundary (for example Ewe (4)'s two bottom
     // A endpoints). Holding the outward direction after teleporting must not
@@ -54,7 +58,8 @@ final class AquaDotGameSimulation {
         initialScore: Int = 0,
         initialBonus: Int = 0,
         initialMultiplier: Int = 1,
-        initialLives: Int = 3
+        initialLives: Int = 3,
+        initialLevelsCleared: Int = 0
     ) {
         self.topology = topology
         self.tuning = tuning
@@ -119,6 +124,11 @@ final class AquaDotGameSimulation {
             multiplier: max(1, initialMultiplier),
             energy: 1.0,
             lives: max(0, initialLives),
+            levelsCleared: max(0, initialLevelsCleared),
+            levelStats: AquaDotLevelStats(
+                initialRequiredDots: topology.dots.count,
+                initialMunchDots: topology.munchDots.count
+            ),
             availableYummyPower: nil,
             activeSpecialPower: nil,
             specialPowerAmount: 0,
@@ -127,6 +137,7 @@ final class AquaDotGameSimulation {
             munchStartedWithFullEnergy: false,
             munchExtraLifeAwardedThisLevel: false,
             levelCompleted: false,
+            gameOver: false,
             isPaused: false
         )
 
@@ -147,6 +158,7 @@ final class AquaDotGameSimulation {
               let power = state.availableYummyPower else { return }
         state.availableYummyPower = nil
         state.activeSpecialPower = .yummy(power)
+        state.levelStats.yummyPowerActivated = true
         pendingEvents.append(.specialPowerActivated(.yummy(power)))
     }
 
@@ -161,14 +173,21 @@ final class AquaDotGameSimulation {
     }
 
     func step(deltaTime: Double) {
-        guard deltaTime > 0, !state.isPaused, !state.levelCompleted else { return }
+        guard deltaTime > 0, !state.isPaused, !state.levelCompleted, !state.gameOver else { return }
 
         damageEventCooldown = max(0, damageEventCooldown - deltaTime)
         updateSpecialPower(deltaTime: deltaTime)
         updateMunch(deltaTime: deltaTime)
+
+        let eventStart = pendingEvents.count
         dotSystem.update(state: &state, deltaTime: deltaTime, random: &random, events: &pendingEvents)
+        accountForGoodieSpawns(in: pendingEvents[eventStart...])
 
         advancePlayer(distance: effectivePlayerSpeed() * deltaTime)
+        if state.levelCompleted {
+            awardScoreExtraLivesIfNeeded()
+            return
+        }
         updateBugs(deltaTime: deltaTime)
         resolveBugCollisions(deltaTime: deltaTime)
         recoverEnergy(deltaTime: deltaTime)
@@ -326,7 +345,10 @@ final class AquaDotGameSimulation {
         // Guide: Sick AquaDot cannot eat *any* dots except Yummy and Yuk.
         // Therefore Munch, Bonus and Multiplier are also unavailable while Sick.
         if !sick, state.remainingMunchDots.remove(position) != nil {
+            if state.munchTimeRemaining > 0 { finishMunchSkillWindow() }
             addScore(250)
+            state.levelStats.munchDotsEaten += 1
+            state.levelStats.munchesStarted += 1
             state.munchStartedWithFullEnergy = state.energy >= 0.999
             state.munchTimeRemaining = tuning.munchDuration
             state.bugsEatenThisMunch = 0
@@ -339,29 +361,23 @@ final class AquaDotGameSimulation {
 
         if let goodie = state.goodie,
            !sick || goodie.kind == .yummy || goodie.kind == .yuk {
+            let collectedKind = goodie.kind
             dotSystem.collectGoodieIfPresent(
                 at: position,
                 state: &state,
                 random: &random,
                 events: &pendingEvents
             )
+            if state.goodie == nil {
+                state.levelStats.goodiesEaten += 1
+                if collectedKind == .yuk { state.levelStats.yukEaten += 1 }
+            }
         }
 
         // Munch dots and transient goodies are optional; original level completion
         // is driven by clearing the required normal/dynamic dot field.
         if state.dots.isEmpty, !state.levelCompleted {
-            if state.activeSpecialPower != nil {
-                state.activeSpecialPower = nil
-                state.specialPowerAmount = 0
-                state.availableYummyPower = nil
-                pendingEvents.append(.specialPowerEnded)
-            }
-            if state.munchTimeRemaining > 0 {
-                state.munchTimeRemaining = 0
-                pendingEvents.append(.munchEnded)
-            }
-            state.levelCompleted = true
-            pendingEvents.append(.levelCompleted)
+            completeLevel()
         }
     }
 
@@ -380,6 +396,7 @@ final class AquaDotGameSimulation {
         guard state.munchTimeRemaining > 0 else { return }
         state.munchTimeRemaining = max(0, state.munchTimeRemaining - deltaTime)
         if state.munchTimeRemaining == 0 {
+            finishMunchSkillWindow()
             for index in state.bugs.indices where state.bugs[index].mode == .frightened {
                 state.bugs[index].mode = .hunting
                 // Guide: after a Munch ends, bugs need a short period to regain
@@ -566,7 +583,9 @@ final class AquaDotGameSimulation {
             var rate = moving ? tuning.movingBugDamagePerSecond : tuning.stoppedBugDamagePerSecond
             if case .yuk(.tasty)? = state.activeSpecialPower { rate *= 4.0 }
             if case .yummy(.energetic)? = state.activeSpecialPower { rate *= 0.45 }
+            let energyBeforeDamage = state.energy
             state.energy = max(0, state.energy - rate * deltaTime)
+            state.levelStats.damageTaken += max(0, energyBeforeDamage - state.energy)
             if damageEventCooldown <= 0 {
                 pendingEvents.append(.playerDamaged)
                 damageEventCooldown = 0.22
@@ -593,6 +612,7 @@ final class AquaDotGameSimulation {
 
         addScore(points)
         state.bugsEatenThisMunch += 1
+        state.levelStats.bugsEaten += 1
         state.energy = min(1, state.energy + 0.25)
         state.bugs[index].mode = .returningHome
         state.bugs[index].nextNode = nil
@@ -608,6 +628,62 @@ final class AquaDotGameSimulation {
         }
     }
 
+    // MARK: - Phase 3 campaign accounting
+
+    private func accountForGoodieSpawns(in events: ArraySlice<AquaDotGameEvent>) {
+        for event in events {
+            if case let .goodieSpawned(kind, _) = event {
+                state.levelStats.goodiesSpawned += 1
+                if kind == .yuk { state.levelStats.yukSpawned += 1 }
+            }
+        }
+    }
+
+    private func finishMunchSkillWindow() {
+        guard state.munchTimeRemaining > 0 || state.bugsEatenThisMunch > 0 else { return }
+        if state.bugsEatenThisMunch > 0 {
+            state.levelStats.munchesWithAtLeastOneBug += 1
+        }
+    }
+
+    private func completeLevel() {
+        guard !state.levelCompleted else { return }
+
+        if state.munchTimeRemaining > 0 { finishMunchSkillWindow() }
+
+        // The guide is explicit: (Bonus + Skill) × Multiplier is added to the
+        // score at the end of each level. Exact Skill weights remain isolated in
+        // AquaDotSkillScoring until stronger binary evidence is recovered.
+        let skill = AquaDotSkillScoring.calculate(state: state)
+        let scoreBefore = state.score
+        let levelAward = (state.bonus + skill.points) * max(1, state.multiplier)
+        state.score += levelAward
+        state.levelsCleared += 1
+        lastLevelResult = AquaDotLevelResult(
+            bonus: state.bonus,
+            skill: skill.points,
+            multiplier: max(1, state.multiplier),
+            levelAward: levelAward,
+            scoreBefore: scoreBefore,
+            scoreAfter: state.score,
+            quality: skill.quality
+        )
+
+        if state.activeSpecialPower != nil {
+            state.activeSpecialPower = nil
+            state.availableYummyPower = nil
+            pendingEvents.append(.specialPowerEnded)
+        }
+        state.specialPowerAmount = 0
+        if state.munchTimeRemaining > 0 {
+            state.munchTimeRemaining = 0
+            pendingEvents.append(.munchEnded)
+        }
+
+        state.levelCompleted = true
+        pendingEvents.append(.levelCompleted)
+    }
+
     // MARK: - Life / energy / score
 
     private func recoverEnergy(deltaTime: Double) {
@@ -617,15 +693,29 @@ final class AquaDotGameSimulation {
     }
 
     private func loseLife() {
+        if state.munchTimeRemaining > 0 { finishMunchSkillWindow() }
         state.lives = max(0, state.lives - 1)
+        state.levelStats.livesLost += 1
         state.multiplier = max(1, state.multiplier - 1)
         state.energy = 1
         state.munchTimeRemaining = 0
         state.bugsEatenThisMunch = 0
         state.munchStartedWithFullEnergy = false
+        pendingEvents.append(.lifeLost)
+
+        // Strategy guide: when AquaDot is out of lives, the game ends. Earlier
+        // revival phases accidentally respawned forever at zero lives.
+        if state.lives == 0 {
+            state.activeSpecialPower = nil
+            state.availableYummyPower = nil
+            state.specialPowerAmount = 0
+            state.gameOver = true
+            pendingEvents.append(.gameOver(finalScore: state.score, levelsCleared: state.levelsCleared))
+            return
+        }
+
         dotSystem.resetAfterLifeLoss(state: &state)
         resetActorsToStarts()
-        pendingEvents.append(.lifeLost)
     }
 
     private func resetActorsToStarts() {

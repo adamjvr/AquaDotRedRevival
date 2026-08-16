@@ -69,11 +69,22 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private var nextDebugRefreshTime: TimeInterval = 0
 
     private var pendingAutomaticLevelAdvance = false
+    private var pendingGameOverPresentation = false
     private var playerSpinAngle: CGFloat = 0
+
+    /// Optional original-style campaign checkpoint configured by the app shell
+    /// before SpriteKit attaches the scene. A persisted resume always starts at
+    /// the beginning of the saved maze, matching the original binary text.
+    private var configuredCampaignStart: (levelIndex: Int, carry: AquaDotRunCarry)?
 
     #if os(iOS)
     private var touchStart: CGPoint?
     #endif
+
+    func configureCampaignStart(levelIndex: Int, carry: AquaDotRunCarry) {
+        guard session == nil else { return }
+        configuredCampaignStart = (levelIndex, carry)
+    }
 
     override func didMove(to view: SKView) {
         backgroundColor = .black
@@ -97,10 +108,16 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         // Options/Opening. Never reload the maze in that case: the original game
         // had a resume path and the shell deliberately preserves the live session.
         if session == nil {
-            if let index = AquaDotOriginalLevelCatalog.standardLevels.firstIndex(where: { $0.originalName == "Ewe (1)" }) {
-                currentCatalogIndex = index
+            if let configuredCampaignStart {
+                self.configuredCampaignStart = nil
+                currentCatalogIndex = configuredCampaignStart.levelIndex
+                loadCatalogLevel(at: currentCatalogIndex, carry: configuredCampaignStart.carry, persistCheckpoint: true)
+            } else {
+                if let index = AquaDotOriginalLevelCatalog.standardLevels.firstIndex(where: { $0.originalName == "Ewe (1)" }) {
+                    currentCatalogIndex = index
+                }
+                loadCatalogLevel(at: currentCatalogIndex, carry: .fresh, persistCheckpoint: true)
             }
-            loadCatalogLevel(at: currentCatalogIndex)
         }
     }
 
@@ -133,7 +150,11 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
     // MARK: - Session lifecycle
 
-    private func loadCatalogLevel(at index: Int, carry: AquaDotRunCarry = .fresh) {
+    private func loadCatalogLevel(
+        at index: Int,
+        carry: AquaDotRunCarry = .fresh,
+        persistCheckpoint: Bool = true
+    ) {
         let catalog = AquaDotOriginalLevelCatalog.standardLevels
         guard !catalog.isEmpty else { showFatalMessage("Recovered level catalog is empty"); return }
 
@@ -155,13 +176,21 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             accumulator = 0
             nextCollectibleSyncTime = 0
             pendingAutomaticLevelAdvance = false
+            pendingGameOverPresentation = false
             playerSpinAngle = 0
             lastWallPalette = preferences.wallPalette
             rebuildScene()
 
+            if persistCheckpoint {
+                AquaDotCampaignStore.shared.saveBeginningOfLevel(
+                    levelIndex: currentCatalogIndex,
+                    carry: carry
+                )
+            }
+
             audio.stopMusic()
             audio.startLevelMusic(variant: (currentCatalogIndex / 5) % 6 + 1)
-            print("AquaDot Phase 2.1: \(record.originalName), CRC \(maze.storedChecksum) ✓, theme \(newSession.wallThemeIndex), bugs \(newSession.state.bugs.count), mode \(newSession.graphicsMode.rawValue), wall palette \(preferences.wallPalette.displayName)")
+            print("AquaDot Phase 3: \(record.originalName), CRC \(maze.storedChecksum) ✓, theme \(newSession.wallThemeIndex), bugs \(newSession.state.bugs.count), mode \(newSession.graphicsMode.rawValue), wall palette \(preferences.wallPalette.displayName)")
         } catch {
             showFatalMessage("Could not load original AquaDot level:\n\(error)")
         }
@@ -395,6 +424,8 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
                 if let session { renderPauseOverlay(session: session) }
             case .levelCompleted:
                 scheduleAutomaticLevelAdvance()
+            case let .gameOver(finalScore, levelsCleared):
+                scheduleGameOver(finalScore: finalScore, levelsCleared: levelsCleared)
             default:
                 break
             }
@@ -402,36 +433,136 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     }
 
 
-    /// Advance automatically after clearing the required dot field. The new
-    /// maze receives run-level score/lives/bonus/multiplier while rebuilding
-    /// maze-local state exactly as a fresh level should.
+    /// Phase 3 restores the original end-of-level accounting structure: Bonus
+    /// and Skill are added, multiplied, then applied to the score before the next
+    /// maze begins. The exact Skill *weights* remain explicitly reconstructed.
     private func scheduleAutomaticLevelAdvance() {
-        guard !pendingAutomaticLevelAdvance, let session else { return }
+        guard !pendingAutomaticLevelAdvance,
+              let session,
+              let result = session.simulation.lastLevelResult else { return }
         pendingAutomaticLevelAdvance = true
 
-        let carry = AquaDotRunCarry(state: session.state)
-        let banner = SKLabelNode(fontNamed: "Helvetica-BoldOblique")
-        banner.text = "maze complete"
-        banner.fontSize = 28
-        banner.fontColor = .cyan
-        banner.horizontalAlignmentMode = .center
-        banner.verticalAlignmentMode = .center
-        banner.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        banner.zPosition = 500
-        addChild(banner)
+        let catalog = AquaDotOriginalLevelCatalog.standardLevels
+        guard !catalog.isEmpty else { return }
+        let nextIndex = (currentCatalogIndex + 1) % catalog.count
+        let carry = AquaDotRunCarry.advancingAfterLevel(from: session.state)
 
-        banner.run(.sequence([
-            .scale(to: 1.08, duration: 0.18),
-            .wait(forDuration: 0.85),
-            .fadeOut(withDuration: 0.18),
+        // Save the NEXT beginning-of-level checkpoint immediately. If the app is
+        // closed during the tween screen, the original behavior resumes next level.
+        AquaDotCampaignStore.shared.saveBeginningOfLevel(levelIndex: nextIndex, carry: carry)
+
+        let overlay = makeTweenLevelOverlay(result: result)
+        overlay.alpha = 0
+        overlay.zPosition = 600
+        addChild(overlay)
+        overlay.run(.sequence([
+            .fadeIn(withDuration: 0.18),
+            .wait(forDuration: 2.35),
+            .fadeOut(withDuration: 0.24),
             .run { [weak self] in
                 guard let self else { return }
-                let catalog = AquaDotOriginalLevelCatalog.standardLevels
-                guard !catalog.isEmpty else { return }
-                self.loadCatalogLevel(
-                    at: (self.currentCatalogIndex + 1) % catalog.count,
-                    carry: carry
-                )
+                self.loadCatalogLevel(at: nextIndex, carry: carry, persistCheckpoint: true)
+            }
+        ]))
+    }
+
+    private func makeTweenLevelOverlay(result: AquaDotLevelResult) -> SKNode {
+        let root = SKNode()
+        let panel = SKShapeNode(rectOf: CGSize(width: 520, height: 430), cornerRadius: 24)
+        panel.fillColor = SKColor.black.withAlphaComponent(0.94)
+        panel.strokeColor = .cyan
+        panel.lineWidth = 3
+        panel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        root.addChild(panel)
+
+        let modeSuffix = session?.graphicsMode == .remastered ? "Remastered" : "Original"
+        let atlas = SKTexture(imageNamed: "P3_EndLevelExclaims_\(modeSuffix)")
+        let frameCount: CGFloat = 30
+        let frameIndex = result.quality.atlasBand * 6 + (result.scoreAfter % 6)
+        let y = 1 - CGFloat(frameIndex + 1) / frameCount
+        let exclaimTexture = SKTexture(
+            rect: CGRect(x: 0, y: y, width: 1, height: 1 / frameCount),
+            in: atlas
+        )
+        let exclaim = SKSpriteNode(texture: exclaimTexture)
+        exclaim.size = CGSize(width: 384, height: 48)
+        exclaim.position = CGPoint(x: size.width / 2, y: size.height / 2 + 150)
+        root.addChild(exclaim)
+
+        let rows: [(String, Int, SKColor)] = [
+            ("Bonus", result.bonus, .cyan),
+            ("Skill", result.skill, .cyan),
+            ("Multiplier", result.multiplier, .red),
+            ("Score", result.scoreBefore, .purple),
+            ("NewScore", result.scoreAfter, .green),
+        ]
+        for (index, row) in rows.enumerated() {
+            let y = size.height / 2 + 78 - CGFloat(index) * 55
+            let label = SKSpriteNode(texture: SKTexture(imageNamed: "P3_Tween_\(row.0)_\(modeSuffix)"))
+            label.size = CGSize(width: 154, height: 42)
+            label.position = CGPoint(x: size.width / 2 - 105, y: y)
+            root.addChild(label)
+
+            let value = SKLabelNode(fontNamed: "Menlo-Bold")
+            value.text = row.0 == "Multiplier" ? "x\(row.1)" : "\(row.1)"
+            value.fontSize = 22
+            value.fontColor = row.2
+            value.horizontalAlignmentMode = .right
+            value.verticalAlignmentMode = .center
+            value.position = CGPoint(x: size.width / 2 + 160, y: y)
+            root.addChild(value)
+        }
+        return root
+    }
+
+    private func scheduleGameOver(finalScore: Int, levelsCleared: Int) {
+        guard !pendingGameOverPresentation else { return }
+        pendingGameOverPresentation = true
+        audio.stopMusic()
+        AquaDotAppController.shared.commitGameOver(
+            finalScore: finalScore,
+            levelsCleared: levelsCleared
+        )
+
+        let modeSuffix = session?.graphicsMode == .remastered ? "Remastered" : "Original"
+        let shade = SKShapeNode(rectOf: size)
+        shade.fillColor = SKColor.black.withAlphaComponent(0.88)
+        shade.strokeColor = .clear
+        shade.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        shade.zPosition = 700
+        addChild(shade)
+
+        let gameOver = SKSpriteNode(texture: SKTexture(imageNamed: "P3_GameOver_\(modeSuffix)"))
+        gameOver.size = CGSize(width: 576, height: 96)
+        gameOver.position = CGPoint(x: size.width / 2, y: size.height / 2 + 55)
+        gameOver.zPosition = 710
+        addChild(gameOver)
+
+        let exclaimAtlas = SKTexture(imageNamed: "P3_GameOverExclaims_\(modeSuffix)")
+        let exclaimFrame = finalScore % 4
+        let exclaimY = 1 - CGFloat(exclaimFrame + 1) / 4
+        let exclaimTexture = SKTexture(
+            rect: CGRect(x: 0, y: exclaimY, width: 1, height: 0.25),
+            in: exclaimAtlas
+        )
+        let exclaim = SKSpriteNode(texture: exclaimTexture)
+        exclaim.size = CGSize(width: 320, height: 80)
+        exclaim.position = CGPoint(x: size.width / 2, y: size.height / 2 - 25)
+        exclaim.zPosition = 710
+        addChild(exclaim)
+
+        let score = SKLabelNode(fontNamed: "Menlo-Bold")
+        score.text = "score \(finalScore)   levels \(levelsCleared)"
+        score.fontSize = 18
+        score.fontColor = .cyan
+        score.position = CGPoint(x: size.width / 2, y: size.height / 2 - 105)
+        score.zPosition = 710
+        addChild(score)
+
+        gameOver.run(.sequence([
+            .wait(forDuration: 2.5),
+            .run {
+                AquaDotAppController.shared.finishGameOverPresentation()
             }
         ]))
     }
@@ -737,19 +868,21 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         audio.handle(events)
 
         playerNode?.position = layout.point(for: session.state.player.renderPosition())
+        updatePlayerAppearance(session: session, time: currentTime)
 
-        // The normal red AquaDot now visibly spins while moving. Rotation is
-        // presentation-only; it does not alter logical position or collisions.
-        if session.state.player.nextNode != nil, currentPlayerAppearance == .normal {
-            let directionSign: CGFloat
+        // Phase 3.1.1: preserve the physical spinning-ball read across every
+        // recovered AquaDot color/state. Different states deliberately change
+        // speed and/or direction, but rotation remains presentation-only.
+        if session.state.player.nextNode != nil {
+            let movementDirectionSign: CGFloat
             switch session.state.player.movementDirection {
-            case .left, .up: directionSign = -1
-            case .right, .down, nil: directionSign = 1
+            case .left, .up: movementDirectionSign = -1
+            case .right, .down, nil: movementDirectionSign = 1
             }
-            playerSpinAngle += CGFloat(frameDelta) * 5.4 * directionSign
+            let parameters = spinParameters(for: currentPlayerAppearance)
+            playerSpinAngle += CGFloat(frameDelta) * parameters.speed * movementDirectionSign * parameters.directionMultiplier
         }
         playerNode?.zRotation = playerSpinAngle
-        updatePlayerAppearance(session: session, time: currentTime)
 
         let playerPosition = session.state.player.renderPosition()
         let blind: Bool = {
@@ -802,6 +935,21 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         if debugVisible, currentTime >= nextDebugRefreshTime {
             refreshDebug(session: session)
             nextDebugRefreshTime = currentTime + 0.25
+        }
+    }
+
+    private func spinParameters(for appearance: AquaDotPlayerAppearance) -> (speed: CGFloat, directionMultiplier: CGFloat) {
+        switch appearance {
+        case .normal:
+            return (speed: 5.4, directionMultiplier: 1)
+        case .munch:
+            return (speed: 7.9, directionMultiplier: 1)
+        case .yummy:
+            return (speed: 6.6, directionMultiplier: 1)
+        case .yuk:
+            return (speed: 4.3, directionMultiplier: -1)
+        case .damaged:
+            return (speed: 8.8, directionMultiplier: -1)
         }
     }
 
@@ -890,8 +1038,8 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             case "a": send(.moveLeft, source: .keyboard)
             case "p": send(.pause, source: .keyboard)
             case "`": toggleDebugOverlay()
-            case "[": loadCatalogLevel(at: currentCatalogIndex - 1)
-            case "]": loadCatalogLevel(at: currentCatalogIndex + 1)
+            case "[": loadCatalogLevel(at: currentCatalogIndex - 1, persistCheckpoint: false)
+            case "]": loadCatalogLevel(at: currentCatalogIndex + 1, persistCheckpoint: false)
             case "o": setGraphicsMode(.original)
             case "r": setGraphicsMode(.remastered)
             case "m":

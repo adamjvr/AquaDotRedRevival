@@ -1,7 +1,40 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
+
+#if os(macOS)
+/// Ensures the running native macOS app uses the recovered AquaDot artwork in
+/// its Dock tile. The normal Xcode AppIcon catalog remains authoritative for
+/// packaging/Finder/iPadOS; this is an explicit runtime Dock presentation path.
+private final class AquaDotMacAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        applyRecoveredDockIcon()
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        applyRecoveredDockIcon()
+    }
+
+    private func applyRecoveredDockIcon() {
+        let name = NSImage.Name("AquaDotDockIcon")
+        guard let image = NSImage(named: name) else {
+            print("AquaDot: recovered Dock icon asset AquaDotDockIcon was not found")
+            return
+        }
+        NSApplication.shared.applicationIconImage = image
+    }
+}
+#endif
+
 
 @main
 struct AquaDotRed_RevivalApp: App {
+    #if os(macOS)
+    @NSApplicationDelegateAdaptor(AquaDotMacAppDelegate.self)
+    private var appDelegate
+    #endif
+
     var body: some Scene {
         WindowGroup {
             ContentView()
