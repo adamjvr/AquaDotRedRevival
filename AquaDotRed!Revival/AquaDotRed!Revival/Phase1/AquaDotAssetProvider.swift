@@ -1,7 +1,6 @@
 import Foundation
 import SpriteKit
 
-
 private enum AquaDotTextureCache {
     static let cache = NSCache<NSString, SKTexture>()
 
@@ -23,14 +22,13 @@ enum AquaDotPlayerAppearance: String, Sendable {
     case damaged = "Damaged"
 }
 
-/// Phase 2 texture bridge. Every remastered texture is derived from recovered OG
-/// art; Original mode retains nearest-neighbor presentation of the preservation
-/// assets, while Remastered mode uses cleaned/high-resolution equivalents.
+/// Texture bridge for recovered/restored AquaDot art. Original mode keeps
+/// nearest-neighbor presentation; Remastered mode uses the restored high-res copy.
 struct AquaDotAssetProvider {
     let mode: AquaDotGraphicsMode
 
     func playerTexture(appearance: AquaDotPlayerAppearance = .normal) -> SKTexture {
-        p2Texture(base: "P2_Player_\(appearance.rawValue)")
+        modeTexture(base: "P2_Player_\(appearance.rawValue)")
     }
 
     func bugTexture(personality: AquaDotBugPersonality) -> SKTexture {
@@ -40,8 +38,12 @@ struct AquaDotAssetProvider {
         case .blocker: key = "Blocker"
         case .sneaker: key = "Sneaker"
         case .houndDog: key = "HoundDog"
+        case .protector: key = "Protector"
+        case .mantis: key = "Mantis"
+        case .hermit: key = "Hermit"
+        case .neon: key = "Neon"
         }
-        return p2Texture(base: "P2_Bug_\(key)")
+        return modeTexture(base: "P2_Bug_\(key)")
     }
 
     func dotTexture(kind: AquaDotDotKind) -> SKTexture {
@@ -49,29 +51,33 @@ struct AquaDotAssetProvider {
         case .normal:
             return legacyTexture(original: "OG_Basic_Dot", remastered: "OG_Basic_Dot")
         case .candy:
-            return p2Texture(base: "P2_Dot_Candy")
+            return modeTexture(base: "P2_Dot_Candy")
         case .crusty:
-            return p2Texture(base: "P2_Dot_Crusty")
+            return modeTexture(base: "P2_Dot_Crusty")
         case .petrified:
-            return p2Texture(base: "P2_Dot_Petrified")
+            return modeTexture(base: "P2_Dot_Petrified")
         }
     }
 
     func munchDotTexture() -> SKTexture {
-        // Phase 2 renders the characteristic expanding/pulsing Munch ring in code;
-        // this recovered inert sprite is retained as Original-mode fallback.
         legacyTexture(original: "OG_Inert_Dot", remastered: "OG_Inert_Dot")
     }
 
     func goodieTexture(kind: AquaDotGoodieKind, multiplier: Int = 2) -> SKTexture {
         switch kind {
-        case .yummy: return p2Texture(base: "P2_Goodie_Yummy")
-        case .yuk: return p2Texture(base: "P2_Goodie_Yuk")
-        case .bonus: return p2Texture(base: "P2_Goodie_Bonus")
+        case .yummy: return modeTexture(base: "P2_Goodie_Yummy")
+        case .yuk: return modeTexture(base: "P2_Goodie_Yuk")
+        case .bonus: return modeTexture(base: "P2_Goodie_Bonus")
         case .multiplier:
             let clamped = max(2, min(5, multiplier))
-            return p2Texture(base: "P2_Goodie_Multiplier\(clamped)")
+            return modeTexture(base: "P2_Goodie_Multiplier\(clamped)")
         }
+    }
+
+    /// Recovered Sprout-Dots-Big artwork. Good is the original green frame; bad
+    /// is the original purple frame. Phase 3B uses it for the MazeSprouts bridge.
+    func sproutTexture(beneficial: Bool) -> SKTexture {
+        modeTexture(base: beneficial ? "P3B_Sprout_Good" : "P3B_Sprout_Bad")
     }
 
     func extraLifeTexture() -> SKTexture {
@@ -94,7 +100,7 @@ struct AquaDotAssetProvider {
         )
     }
 
-    private func p2Texture(base: String) -> SKTexture {
+    private func modeTexture(base: String) -> SKTexture {
         let suffix = mode == .remastered ? "Remastered" : "Original"
         return AquaDotTextureCache.texture(
             named: "\(base)_\(suffix)",
@@ -103,7 +109,7 @@ struct AquaDotAssetProvider {
     }
 
     private func legacyTexture(original: String, remastered: String) -> SKTexture {
-        return AquaDotTextureCache.texture(
+        AquaDotTextureCache.texture(
             named: mode == .remastered ? remastered : original,
             filtering: mode == .original ? .nearest : .linear
         )

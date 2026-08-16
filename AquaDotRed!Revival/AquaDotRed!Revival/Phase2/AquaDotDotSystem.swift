@@ -1,9 +1,8 @@
 import Foundation
 
-/// Reconstructs AquaDot's dynamic dot ecosystem from the shipped strategy guide
-/// and the recovered MazeDots/MazeSprouts architecture. Static maze tokens remain
-/// authoritative; dynamic goodie timing/radii are centralized as tuning values so
-/// they can be replaced as more exact constants are recovered from the binary.
+/// AquaDot's dynamic dot ecosystem. Phase 3B ties the already-reconstructed
+/// Candy/Crusty/Petrified transformations back to the recovered MazeSprouts
+/// infection/cure machinery instead of inventing a separate infection mechanic.
 struct AquaDotDotSystem: Sendable {
     struct Tuning: Sendable {
         var firstGoodieDelay: Double = 6.0
@@ -13,9 +12,18 @@ struct AquaDotDotSystem: Sendable {
         var transformationRadius: Int = 4
     }
 
+    private struct PendingDotTransition: Sendable {
+        let position: GridPosition
+        let expectedKind: AquaDotDotKind
+        let destinationKind: AquaDotDotKind
+        let beneficial: Bool
+        var delay: Double
+    }
+
     let topology: AquaDotMazeTopology
     let pathfinding: AquaDotPathfinding
     let tuning: Tuning
+    private var pendingTransitions: [PendingDotTransition] = []
 
     init(topology: AquaDotMazeTopology, tuning: Tuning = Tuning()) {
         self.topology = topology
@@ -31,24 +39,55 @@ struct AquaDotDotSystem: Sendable {
     ) {
         guard !state.levelCompleted else { return }
 
+        updatePendingTransitions(
+            state: &state,
+            deltaTime: deltaTime,
+            events: &events
+        )
+
         if var goodie = state.goodie {
             goodie.age += deltaTime
             state.goodie = goodie
 
-            // Guide behavior is progressive: nearby dots change as the goodie
-            // ages rather than the whole field flipping in one instant.
-            let growth = max(1, min(tuning.transformationRadius, Int(ceil((goodie.age / goodie.lifetime) * Double(tuning.transformationRadius)))))
+            let growth = max(
+                1,
+                min(
+                    tuning.transformationRadius,
+                    Int(ceil((goodie.age / goodie.lifetime) * Double(tuning.transformationRadius)))
+                )
+            )
             switch goodie.kind {
             case .yummy:
-                transformNearbyDots(around: goodie.position, radius: growth, from: .normal, to: .candy, state: &state)
+                transformNearbyDots(
+                    around: goodie.position,
+                    radius: growth,
+                    from: .normal,
+                    to: .candy,
+                    beneficial: true,
+                    state: &state,
+                    events: &events
+                )
             case .yuk:
-                transformNearbyDots(around: goodie.position, radius: growth, from: .normal, to: .crusty, state: &state)
+                transformNearbyDots(
+                    around: goodie.position,
+                    radius: growth,
+                    from: .normal,
+                    to: .crusty,
+                    beneficial: false,
+                    state: &state,
+                    events: &events
+                )
             case .bonus, .multiplier:
                 break
             }
 
             if goodie.age >= goodie.lifetime {
-                expireGoodie(goodie, state: &state)
+                expireGoodie(
+                    goodie,
+                    state: &state,
+                    random: &random,
+                    events: &events
+                )
                 state.goodie = nil
                 scheduleNextGoodie(state: &state, random: &random)
             }
@@ -73,37 +112,61 @@ struct AquaDotDotSystem: Sendable {
 
         switch goodie.kind {
         case .yummy:
-            restoreTransformedDots(.candy, to: .normal, state: &state)
-            state.specialPowerAmount = min(1, state.specialPowerAmount + 0.55 + min(0.25, goodie.age / goodie.lifetime * 0.25))
+            // Guide + cureDot disassembly: when the parent is eaten, transformed
+            // Candy dots cure less abruptly than when the parent simply vanishes.
+            scheduleTransitions(
+                from: .candy,
+                to: .normal,
+                delayRange: AquaDotRecoveredSproutMechanics.slowCureDelay,
+                beneficial: true,
+                state: state,
+                random: &random
+            )
+            state.specialPowerAmount = min(
+                1,
+                state.specialPowerAmount + 0.55 + min(0.25, goodie.age / goodie.lifetime * 0.25)
+            )
 
-            // Opposite goodies cancel an active special. If a Yummy power is
-            // already active, the guide says another Yummy adds power without
-            // replacing that active ability.
             if case .yuk? = state.activeSpecialPower {
                 state.activeSpecialPower = nil
                 events.append(.specialPowerEnded)
             }
             if state.activeSpecialPower == nil {
-                let power = AquaDotYummyPower.allCases[random.int(upperBound: AquaDotYummyPower.allCases.count)]
+                let power = AquaDotYummyPower.allCases[
+                    random.int(upperBound: AquaDotYummyPower.allCases.count)
+                ]
                 state.availableYummyPower = power
                 events.append(.specialPowerAvailable(power))
             }
 
         case .yuk:
-            restoreTransformedDots(.crusty, to: .normal, state: &state)
+            // Eating Yuk cures the infected Crusty field back to Normal. The
+            // longer recovered cure path is used here; an uneaten Yuk follows the
+            // guide's Petrified outcome below.
+            scheduleTransitions(
+                from: .crusty,
+                to: .normal,
+                delayRange: AquaDotRecoveredSproutMechanics.slowCureDelay,
+                beneficial: true,
+                state: state,
+                random: &random
+            )
             if state.activeSpecialPower != nil {
                 state.activeSpecialPower = nil
                 events.append(.specialPowerEnded)
             }
             state.availableYummyPower = nil
-            let power = AquaDotYukPower.allCases[random.int(upperBound: AquaDotYukPower.allCases.count)]
+            let power = AquaDotYukPower.allCases[
+                random.int(upperBound: AquaDotYukPower.allCases.count)
+            ]
             state.activeSpecialPower = .yuk(power)
-            state.specialPowerAmount = min(1, 0.5 + min(0.4, goodie.age / goodie.lifetime * 0.4))
+            state.specialPowerAmount = min(
+                1,
+                0.5 + min(0.4, goodie.age / goodie.lifetime * 0.4)
+            )
             events.append(.specialPowerActivated(.yuk(power)))
 
         case .bonus:
-            // The guide describes older Bonus dots as more valuable. Exact bonus
-            // curve remains a constant-recovery target; this preserves that rule.
             state.bonus += Int(250 + 1750 * min(1, goodie.age / goodie.lifetime))
 
         case .multiplier:
@@ -114,12 +177,17 @@ struct AquaDotDotSystem: Sendable {
         scheduleNextGoodie(state: &state, random: &random)
     }
 
-    mutating func resetAfterLifeLoss(state: inout AquaDotGameState) {
+    mutating func resetAfterLifeLoss(
+        state: inout AquaDotGameState,
+        random: inout AquaDotSeededRandom,
+        events: inout [AquaDotGameEvent]
+    ) {
         state.activeSpecialPower = nil
         state.specialPowerAmount = 0
         state.availableYummyPower = nil
         if let goodie = state.goodie {
-            expireGoodie(goodie, state: &state)
+            // A death removes the parent goodie without collecting it.
+            expireGoodie(goodie, state: &state, random: &random, events: &events)
             state.goodie = nil
         }
     }
@@ -141,27 +209,67 @@ struct AquaDotDotSystem: Sendable {
         let kind = kinds[random.int(upperBound: kinds.count)]
         if kind == .multiplier { state.multiplierGoodieSpawned = true }
         let position = candidates[random.int(upperBound: candidates.count)]
-        let goodie = AquaDotGoodieState(kind: kind, position: position, age: 0, lifetime: tuning.goodieLifetime)
+        let goodie = AquaDotGoodieState(
+            kind: kind,
+            position: position,
+            age: 0,
+            lifetime: tuning.goodieLifetime
+        )
         state.goodie = goodie
 
         switch kind {
         case .yummy:
-            transformNearbyDots(around: position, radius: 1, from: .normal, to: .candy, state: &state)
+            transformNearbyDots(
+                around: position,
+                radius: 1,
+                from: .normal,
+                to: .candy,
+                beneficial: true,
+                state: &state,
+                events: &events
+            )
         case .yuk:
-            transformNearbyDots(around: position, radius: 1, from: .normal, to: .crusty, state: &state)
+            transformNearbyDots(
+                around: position,
+                radius: 1,
+                from: .normal,
+                to: .crusty,
+                beneficial: false,
+                state: &state,
+                events: &events
+            )
         case .bonus, .multiplier:
             break
         }
         events.append(.goodieSpawned(kind: kind, position: position))
     }
 
-    private func expireGoodie(_ goodie: AquaDotGoodieState, state: inout AquaDotGameState) {
+    private mutating func expireGoodie(
+        _ goodie: AquaDotGoodieState,
+        state: inout AquaDotGameState,
+        random: inout AquaDotSeededRandom,
+        events: inout [AquaDotGameEvent]
+    ) {
         switch goodie.kind {
         case .yummy:
-            restoreTransformedDots(.candy, to: .normal, state: &state)
+            scheduleTransitions(
+                from: .candy,
+                to: .normal,
+                delayRange: AquaDotRecoveredSproutMechanics.fastCureDelay,
+                beneficial: true,
+                state: state,
+                random: &random
+            )
         case .yuk:
-            // Strategy guide: if a Yuk disappears uneaten, Crusty dots petrify.
-            restoreTransformedDots(.crusty, to: .petrified, state: &state)
+            // Shipped guide: an uneaten Yuk leaves Petrified dots behind.
+            scheduleTransitions(
+                from: .crusty,
+                to: .petrified,
+                delayRange: AquaDotRecoveredSproutMechanics.fastCureDelay,
+                beneficial: false,
+                state: state,
+                random: &random
+            )
         case .bonus, .multiplier:
             break
         }
@@ -172,27 +280,81 @@ struct AquaDotDotSystem: Sendable {
         radius: Int,
         from source: AquaDotDotKind,
         to destination: AquaDotDotKind,
-        state: inout AquaDotGameState
+        beneficial: Bool,
+        state: inout AquaDotGameState,
+        events: inout [AquaDotGameEvent]
     ) {
         for position in Array(state.dots.keys) {
             guard state.dots[position] == source,
                   let distance = pathfinding.shortestDistance(from: origin, to: position),
                   distance <= radius else { continue }
             state.dots[position] = destination
+            events.append(.dotTransformed(position: position, kind: destination))
+            events.append(.sproutStarted(source: origin, target: position, beneficial: beneficial))
         }
     }
 
-    private func restoreTransformedDots(
-        _ source: AquaDotDotKind,
+    private mutating func scheduleTransitions(
+        from source: AquaDotDotKind,
         to destination: AquaDotDotKind,
-        state: inout AquaDotGameState
+        delayRange: ClosedRange<Double>,
+        beneficial: Bool,
+        state: AquaDotGameState,
+        random: inout AquaDotSeededRandom
     ) {
-        for position in Array(state.dots.keys) where state.dots[position] == source {
-            state.dots[position] = destination
+        for position in state.dots.keys.sorted(by: Self.positionSort) where state.dots[position] == source {
+            guard pendingTransitions.count < AquaDotRecoveredSproutMechanics.maximumInfectionRecords else { break }
+            let delay = delayRange.lowerBound
+                + random.double() * (delayRange.upperBound - delayRange.lowerBound)
+            pendingTransitions.append(
+                PendingDotTransition(
+                    position: position,
+                    expectedKind: source,
+                    destinationKind: destination,
+                    beneficial: beneficial,
+                    delay: delay
+                )
+            )
         }
     }
 
-    private func scheduleNextGoodie(state: inout AquaDotGameState, random: inout AquaDotSeededRandom) {
-        state.goodieSpawnCountdown = tuning.minimumGoodieInterval + random.double() * tuning.goodieIntervalJitter
+    private mutating func updatePendingTransitions(
+        state: inout AquaDotGameState,
+        deltaTime: Double,
+        events: inout [AquaDotGameEvent]
+    ) {
+        guard !pendingTransitions.isEmpty else { return }
+        for index in pendingTransitions.indices.reversed() {
+            pendingTransitions[index].delay -= deltaTime
+            guard pendingTransitions[index].delay <= 0 else { continue }
+            let transition = pendingTransitions.remove(at: index)
+            guard state.dots[transition.position] == transition.expectedKind else { continue }
+            state.dots[transition.position] = transition.destinationKind
+            events.append(
+                .dotTransformed(
+                    position: transition.position,
+                    kind: transition.destinationKind
+                )
+            )
+            events.append(
+                .sproutStarted(
+                    source: transition.position,
+                    target: transition.position,
+                    beneficial: transition.beneficial
+                )
+            )
+        }
+    }
+
+    private func scheduleNextGoodie(
+        state: inout AquaDotGameState,
+        random: inout AquaDotSeededRandom
+    ) {
+        state.goodieSpawnCountdown = tuning.minimumGoodieInterval
+            + random.double() * tuning.goodieIntervalJitter
+    }
+
+    private static func positionSort(_ lhs: GridPosition, _ rhs: GridPosition) -> Bool {
+        lhs.y == rhs.y ? lhs.x < rhs.x : lhs.y < rhs.y
     }
 }

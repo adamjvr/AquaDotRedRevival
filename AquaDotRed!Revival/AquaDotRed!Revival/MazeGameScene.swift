@@ -43,6 +43,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private var goodieNode: SKSpriteNode?
     private var renderedGoodieKind: AquaDotGoodieKind?
     private var renderedGoodiePosition: GridPosition?
+    private var activeSproutCount = 0
 
     private var energyWave: SKShapeNode?
     private var specialWave: SKShapeNode?
@@ -211,6 +212,7 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         goodieNode = nil
         renderedGoodieKind = nil
         renderedGoodiePosition = nil
+        activeSproutCount = 0
 
         guard let session, let layout else { return }
         AquaDotWallRenderer(
@@ -416,6 +418,15 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
             case let .dotEaten(_, position):
                 dotNodes.removeValue(forKey: position)?.removeFromParent()
                 renderedDotKinds.removeValue(forKey: position)
+            case let .dotTransformed(position, kind):
+                if let node = dotNodes[position] {
+                    node.texture = assets.dotTexture(kind: kind)
+                    let side: CGFloat = kind == .normal ? 8 : 15
+                    node.size = CGSize(width: side, height: side)
+                    renderedDotKinds[position] = kind
+                }
+            case let .sproutStarted(source, target, beneficial):
+                animateSprout(from: source, to: target, beneficial: beneficial)
             case let .munchEaten(position):
                 munchNodes.removeValue(forKey: position)?.removeFromParent()
             case .goodieSpawned, .goodieEaten:
@@ -432,6 +443,50 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         }
     }
 
+
+    private func animateSprout(
+        from source: GridPosition,
+        to target: GridPosition,
+        beneficial: Bool
+    ) {
+        guard let layout,
+              activeSproutCount < AquaDotRecoveredSproutMechanics.maximumActiveSproutSprites else { return }
+
+        activeSproutCount += 1
+        let node = SKSpriteNode(texture: assets.sproutTexture(beneficial: beneficial))
+        node.size = CGSize(width: 20, height: 20)
+        node.position = layout.point(for: source)
+        node.zPosition = 24
+        node.alpha = 0.92
+        collectibleRoot.addChild(node)
+
+        let targetPoint = layout.point(for: target)
+        let dx = targetPoint.x - node.position.x
+        let dy = targetPoint.y - node.position.y
+        let distance = sqrt(dx * dx + dy * dy)
+        let duration = source == target ? 0.20 : min(0.55, 0.16 + Double(distance / 240))
+
+        let action: SKAction
+        if source == target {
+            action = .group([
+                .sequence([.scale(to: 1.36, duration: duration * 0.45), .scale(to: 0.74, duration: duration * 0.55)]),
+                .fadeOut(withDuration: duration),
+            ])
+        } else {
+            action = .group([
+                .move(to: targetPoint, duration: duration),
+                .sequence([.scale(to: 1.18, duration: duration * 0.45), .scale(to: 0.78, duration: duration * 0.55)]),
+                .sequence([.wait(forDuration: duration * 0.60), .fadeOut(withDuration: duration * 0.40)]),
+            ])
+        }
+        node.run(.sequence([
+            action,
+            .run { [weak self, weak node] in
+                node?.removeFromParent()
+                if let self { self.activeSproutCount = max(0, self.activeSproutCount - 1) }
+            }
+        ]))
+    }
 
     /// Phase 3 restores the original end-of-level accounting structure: Bonus
     /// and Skill are added, multiplied, then applied to the score before the next
@@ -451,13 +506,14 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         // closed during the tween screen, the original behavior resumes next level.
         AquaDotCampaignStore.shared.saveBeginningOfLevel(levelIndex: nextIndex, carry: carry)
 
+        let recoveredTweenDuration = audio.playLevelResult(result.quality)
         let overlay = makeTweenLevelOverlay(result: result)
         overlay.alpha = 0
         overlay.zPosition = 600
         addChild(overlay)
         overlay.run(.sequence([
             .fadeIn(withDuration: 0.18),
-            .wait(forDuration: 2.35),
+            .wait(forDuration: max(2.35, recoveredTweenDuration)),
             .fadeOut(withDuration: 0.24),
             .run { [weak self] in
                 guard let self else { return }
@@ -468,7 +524,10 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
     private func makeTweenLevelOverlay(result: AquaDotLevelResult) -> SKNode {
         let root = SKNode()
-        let panel = SKShapeNode(rectOf: CGSize(width: 520, height: 430), cornerRadius: 24)
+        // The recovered end-level phrase atlas is made of 15 complete 4:1
+        // frames (5 quality bands x 3 phrases), and the scoreboard needs enough
+        // headroom to display a full 104-point phrase without clipping it.
+        let panel = SKShapeNode(rectOf: CGSize(width: 520, height: 460), cornerRadius: 24)
         panel.fillColor = SKColor.black.withAlphaComponent(0.94)
         panel.strokeColor = .cyan
         panel.lineWidth = 3
@@ -477,15 +536,25 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
         let modeSuffix = session?.graphicsMode == .remastered ? "Remastered" : "Original"
         let atlas = SKTexture(imageNamed: "P3_EndLevelExclaims_\(modeSuffix)")
-        let frameCount: CGFloat = 30
-        let frameIndex = result.quality.atlasBand * 6 + (result.scoreAfter % 6)
+        // Recovered atlas audit:
+        //   Original:   512 x 1920  = 15 frames at 512 x 128
+        //   Remastered: 2048 x 7680 = 15 frames at 2048 x 512
+        // Therefore each quality band has THREE phrases, not six. The previous
+        // 30-frame assumption cut every real phrase in half vertically.
+        let frameCount: CGFloat = 15
+        let variantsPerBand = 3
+        let frameIndex = result.quality.atlasBand * variantsPerBand
+            + (result.scoreAfter % variantsPerBand)
         let y = 1 - CGFloat(frameIndex + 1) / frameCount
         let exclaimTexture = SKTexture(
             rect: CGRect(x: 0, y: y, width: 1, height: 1 / frameCount),
             in: atlas
         )
         let exclaim = SKSpriteNode(texture: exclaimTexture)
-        exclaim.size = CGSize(width: 384, height: 48)
+        // Preserve the recovered frame's 4:1 aspect ratio. 416 x 104 fits
+        // comfortably inside the widened scoreboard headroom and keeps the
+        // complete phrase clear of the first Bonus row.
+        exclaim.size = CGSize(width: 416, height: 104)
         exclaim.position = CGPoint(x: size.width / 2, y: size.height / 2 + 150)
         root.addChild(exclaim)
 
@@ -790,7 +859,10 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
     private func refreshDebug(session: AquaDotGameSession) {
         guard debugVisible else { return }
         let bugs = session.state.bugs.map {
-            "\($0.id):\($0.personality.rawValue)/\($0.mode.rawValue)@\($0.currentNode.x),\($0.currentNode.y)"
+            let personality = $0.personality == .neon
+                ? "neon→\($0.effectivePersonality.rawValue)"
+                : $0.personality.rawValue
+            return "\($0.id):\(personality)/\($0.mode.rawValue)@\($0.currentNode.x),\($0.currentNode.y)"
         }.joined(separator: "   ")
         debugStatusLabel?.text =
             "FPS \(String(format: "%.0f", measuredFPS))  nodes \(recursiveNodeCount(self))  audio \(audio.activeVoiceCount)/10  " +

@@ -1,19 +1,14 @@
 import AVFoundation
 import Foundation
 
-/// Phase 2.1 audio backend.
-///
-/// Phase 2 instantiated an AVAudioPlayer for every dot. AquaDot can generate
-/// hundreds of one-shot events per level, so that design repeatedly entered
-/// CoreAudio/HAL setup and eventually produced overload messages on real Macs.
-///
-/// This implementation builds one persistent AVAudioEngine, decodes the shipped
-/// lossless runtime copies once, and reuses a small pool of AVAudioPlayerNodes.
-/// The original `.adrs` bytes remain untouched in preservation/.
+/// Persistent pooled audio backend. Phase 3B adds the five recovered tween-level
+/// music tracks and the recovered Game Over/High Score speech without returning
+/// to the old per-event AVAudioPlayer allocation pattern.
 final class AquaDotAudioSystem {
     private let preferences = AquaDotPreferences.shared
     private let engine = AVAudioEngine()
     private let musicNode = AVAudioPlayerNode()
+    private let tweenNode = AVAudioPlayerNode()
     private let specialNode = AVAudioPlayerNode()
     private let oneShotNodes: [AVAudioPlayerNode] = (0..<10).map { _ in AVAudioPlayerNode() }
 
@@ -27,13 +22,12 @@ final class AquaDotAudioSystem {
         configureEngine()
     }
 
-    deinit {
-        stopAll()
-    }
+    deinit { stopAll() }
 
     var activeVoiceCount: Int {
         oneShotNodes.filter { $0.isPlaying }.count
             + (musicNode.isPlaying ? 1 : 0)
+            + (tweenNode.isPlaying ? 1 : 0)
             + (specialNode.isPlaying ? 1 : 0)
     }
 
@@ -41,17 +35,18 @@ final class AquaDotAudioSystem {
 
     func synchronizePreferences() {
         musicNode.volume = preferences.muteAll || preferences.disableMusic
-            ? 0
-            : Float(0.55 * preferences.musicVolume)
+            ? 0 : Float(0.55 * preferences.musicVolume)
+        tweenNode.volume = preferences.muteAll || preferences.disableMusic
+            ? 0 : Float(0.72 * preferences.musicVolume)
         specialNode.volume = preferences.muteAll
-            ? 0
-            : Float(0.44 * preferences.soundEffectsVolume)
+            ? 0 : Float(0.44 * preferences.soundEffectsVolume)
     }
 
     func startLevelMusic(variant: Int) {
         let level = max(1, min(6, variant))
         let key = "OGS_Music_level\(level)"
 
+        tweenNode.stop()
         musicNode.stop()
         guard !preferences.muteAll,
               !preferences.disableMusic,
@@ -63,20 +58,49 @@ final class AquaDotAudioSystem {
         musicNode.play()
     }
 
-    func stopMusic() {
+    func stopMusic() { musicNode.stop() }
+
+    /// Play the recovered end-of-level music for the guide/binary-confirmed five
+    /// quality bands. Returns the actual decoded duration so the tween screen can
+    /// remain visible for the original track instead of an arbitrary 2.35 sec.
+    @discardableResult
+    func playLevelResult(_ quality: AquaDotLevelQuality) -> TimeInterval {
+        let key: String
+        switch quality {
+        case .yuk: key = "OGS_Music_tween_yuk"
+        case .okay: key = "OGS_Music_tween_okay"
+        case .good: key = "OGS_Music_tween_good"
+        case .veryGood: key = "OGS_Music_tween_veryGood"
+        case .wowBest: key = "OGS_Music_tween_wowBest"
+        }
+
         musicNode.stop()
+        tweenNode.stop()
+        guard !preferences.muteAll,
+              !preferences.disableMusic,
+              let buffer = buffers[key],
+              ensureEngineRunning() else { return 0 }
+
+        tweenNode.volume = Float(0.72 * preferences.musicVolume)
+        tweenNode.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
+        tweenNode.play()
+        return buffer.format.sampleRate > 0
+            ? Double(buffer.frameLength) / buffer.format.sampleRate
+            : 0
+    }
+
+    func playHighScoreCue() {
+        play("OGS_Speak_highScore", volume: 0.92)
     }
 
     func stopAll() {
         musicNode.stop()
+        tweenNode.stop()
         specialNode.stop()
         oneShotNodes.forEach { $0.stop() }
         if engine.isRunning { engine.stop() }
     }
 
-    /// Restore an already-active ability after leaving the retained game scene
-    /// for Options/Opening. Unlike a fresh activation, this does not replay the
-    /// original short start cue.
     func resumeSpecialPower(_ power: AquaDotSpecialPower) {
         startSpecialLoop(power, playIntro: false)
     }
@@ -86,6 +110,8 @@ final class AquaDotAudioSystem {
             switch event {
             case .dotEaten:
                 play("OGS_General_eatSmallDot", volume: 0.65)
+            case .dotTransformed, .sproutStarted:
+                break
             case .munchEaten:
                 break
             case .munchStarted:
@@ -131,7 +157,9 @@ final class AquaDotAudioSystem {
                 break
             case .gameOver:
                 stopSpecialLoop()
-                stopMusic()
+                musicNode.stop()
+                tweenNode.stop()
+                play("OGS_Speak_gameOver", volume: 0.94)
             case let .paused(paused):
                 if paused { play("OGS_Speak_pause", volume: 0.75) }
             }
@@ -163,13 +191,35 @@ final class AquaDotAudioSystem {
     }
 
     private func configureEngine() {
-        guard !engineConfigured, let format = buffers.values.first?.format else { return }
+        guard !engineConfigured else { return }
+
+        // AVAudioPlayerNode requires a scheduled buffer's channel count to match
+        // the player's configured output format. Phase 3B added stereo tween-level
+        // music to a pool whose ordinary gameplay sounds are mono. The old code
+        // connected *every* player node using an arbitrary `buffers.values.first`
+        // format, so the first level-complete event could schedule a stereo tween
+        // on a mono tweenNode and AVFAudio would raise an Objective-C exception.
+        //
+        // Use deterministic formats per playback family instead. AVAudioMixerNode
+        // is specifically designed to accept differently formatted input busses.
+        guard let gameplayFormat = buffers["OGS_General_eatSmallDot"]?.format
+                ?? buffers.values.first?.format else { return }
+        let levelMusicFormat = buffers["OGS_Music_level1"]?.format ?? gameplayFormat
+        let tweenFormat = buffers["OGS_Music_tween_okay"]?.format ?? levelMusicFormat
+        let specialFormat = buffers["OGS_Loops_yummy_invisible"]?.format ?? gameplayFormat
+
         engineConfigured = true
 
-        let nodes = [musicNode, specialNode] + oneShotNodes
-        for node in nodes {
-            engine.attach(node)
-            engine.connect(node, to: engine.mainMixerNode, format: format)
+        engine.attach(musicNode)
+        engine.attach(tweenNode)
+        engine.attach(specialNode)
+        oneShotNodes.forEach { engine.attach($0) }
+
+        engine.connect(musicNode, to: engine.mainMixerNode, format: levelMusicFormat)
+        engine.connect(tweenNode, to: engine.mainMixerNode, format: tweenFormat)
+        engine.connect(specialNode, to: engine.mainMixerNode, format: specialFormat)
+        oneShotNodes.forEach {
+            engine.connect($0, to: engine.mainMixerNode, format: gameplayFormat)
         }
 
         engine.mainMixerNode.outputVolume = 1
@@ -177,7 +227,12 @@ final class AquaDotAudioSystem {
         _ = ensureEngineRunning()
         synchronizePreferences()
 
-        print("AquaDot audio Phase 2.1: persistent engine ready, \(buffers.count) original sounds cached, \(oneShotNodes.count) one-shot voices")
+        print(
+            "AquaDot audio Phase 3B.1: persistent engine ready, \(buffers.count) original sounds cached, " +
+            "gameplay \(gameplayFormat.channelCount)ch, music \(levelMusicFormat.channelCount)ch, " +
+            "tween \(tweenFormat.channelCount)ch, special \(specialFormat.channelCount)ch, " +
+            "\(oneShotNodes.count) one-shot voices"
+        )
     }
 
     @discardableResult
@@ -202,9 +257,7 @@ final class AquaDotAudioSystem {
         case let .yuk(value): stem = "yuk_\(value.rawValue)"
         }
 
-        if playIntro {
-            play("OGS_Loops_\(stem)_start", volume: 0.62)
-        }
+        if playIntro { play("OGS_Loops_\(stem)_start", volume: 0.62) }
         let key = "OGS_Loops_\(stem)"
         guard !preferences.muteAll,
               let buffer = buffers[key],
@@ -215,9 +268,7 @@ final class AquaDotAudioSystem {
         specialNode.play()
     }
 
-    private func stopSpecialLoop() {
-        specialNode.stop()
-    }
+    private func stopSpecialLoop() { specialNode.stop() }
 
     private func play(_ key: String, volume: Float = 0.75) {
         guard !preferences.muteAll,
@@ -226,10 +277,6 @@ final class AquaDotAudioSystem {
 
         let node = oneShotNodes[nextOneShotNode]
         nextOneShotNode = (nextOneShotNode + 1) % oneShotNodes.count
-
-        // Reusing a node rather than allocating an AVAudioPlayer is the important
-        // performance fix. Ten voices are enough to overlap rapid dot/bug events
-        // without unbounded CoreAudio object creation.
         node.stop()
         node.volume = volume * Float(preferences.soundEffectsVolume)
         node.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)

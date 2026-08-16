@@ -61,6 +61,8 @@ struct AquaDotGoodieState: Equatable, Codable, Sendable {
 
 enum AquaDotGameEvent: Equatable, Sendable {
     case dotEaten(kind: AquaDotDotKind, position: GridPosition)
+    case dotTransformed(position: GridPosition, kind: AquaDotDotKind)
+    case sproutStarted(source: GridPosition, target: GridPosition, beneficial: Bool)
     case munchEaten(position: GridPosition)
     case munchStarted
     case munchEnded
