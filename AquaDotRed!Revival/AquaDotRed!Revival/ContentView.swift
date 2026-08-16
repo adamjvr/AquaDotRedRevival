@@ -14,6 +14,8 @@ struct ContentView: View {
                 AquaDotOptionsView(controller: controller)
             case .scores:
                 AquaDotScoresView(controller: controller)
+            case .highScoreEntry:
+                AquaDotHighScoreEntryView(controller: controller)
             case .help:
                 AquaDotHelpView(controller: controller)
             case .about:

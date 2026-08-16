@@ -7,6 +7,7 @@ enum AquaDotAppRoute: String, Sendable {
     case game
     case options
     case scores
+    case highScoreEntry
     case help
     case about
 }
@@ -22,6 +23,7 @@ final class AquaDotAppController: ObservableObject {
     static let shared = AquaDotAppController()
 
     @Published var route: AquaDotAppRoute = .opening
+    @Published private(set) var pendingHighScore: AquaDotHighScoreRecord?
     let preferences = AquaDotPreferences.shared
 
     private(set) var activeGameScene: MazeGameScene?
@@ -54,6 +56,7 @@ final class AquaDotAppController: ObservableObject {
 
     func startNewGame() {
         activeGameScene?.shutdown()
+        pendingHighScore = nil
         campaignStore.clear()
         // A fresh scene invokes the recovered random campaign selector itself.
         // There is intentionally no fixed Ewe (1) start anymore.
@@ -87,6 +90,7 @@ final class AquaDotAppController: ObservableObject {
     func endCurrentGameAndShowOpening() {
         activeGameScene?.shutdown()
         activeGameScene = nil
+        pendingHighScore = nil
         route = .opening
     }
 
@@ -94,7 +98,13 @@ final class AquaDotAppController: ObservableObject {
     /// before the presentation delay means force-quitting on the Game Over screen
     /// cannot resurrect the dead run from its last auto-save.
     func commitGameOver(finalScore: Int, levelsCleared: Int) {
-        highScoreStore.record(score: finalScore, levelsCleared: levelsCleared)
+        // Preserve Phase 3's crash-safety: the terminal result is durable before
+        // the Game Over presentation finishes. Phase 3D then lets the player name
+        // this exact UUID-backed record instead of creating a second score later.
+        pendingHighScore = highScoreStore.record(
+            score: finalScore,
+            levelsCleared: levelsCleared
+        )
         campaignStore.clear()
     }
 
@@ -102,6 +112,26 @@ final class AquaDotAppController: ObservableObject {
     func finishGameOverPresentation() {
         activeGameScene?.shutdown()
         activeGameScene = nil
+        returnRoute = .opening
+        route = pendingHighScore == nil ? .scores : .highScoreEntry
+    }
+
+    func submitPendingHighScoreName(_ name: String) {
+        guard let pendingHighScore else {
+            route = .scores
+            return
+        }
+        self.pendingHighScore = highScoreStore.rename(
+            recordID: pendingHighScore.id,
+            name: name
+        )
+        self.pendingHighScore = nil
+        returnRoute = .opening
+        route = .scores
+    }
+
+    func keepPendingHighScoreAnonymous() {
+        pendingHighScore = nil
         returnRoute = .opening
         route = .scores
     }

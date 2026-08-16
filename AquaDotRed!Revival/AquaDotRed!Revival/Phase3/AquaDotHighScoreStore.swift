@@ -66,6 +66,24 @@ final class AquaDotHighScoreStore {
         return record
     }
 
+    @discardableResult
+    func rename(recordID: UUID, name: String) -> AquaDotHighScoreRecord? {
+        var records = allRecords
+        guard let index = records.firstIndex(where: { $0.id == recordID }) else {
+            return nil
+        }
+
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        records[index].name = trimmed.isEmpty ? "anonymous" : trimmed
+        let updated = records[index]
+        records.sort(by: Self.scoreOrder)
+        records = Array(records.prefix(100))
+        if let data = try? encoder.encode(records) {
+            defaults.set(data, forKey: key)
+        }
+        return updated
+    }
+
     func clear() {
         defaults.removeObject(forKey: key)
     }

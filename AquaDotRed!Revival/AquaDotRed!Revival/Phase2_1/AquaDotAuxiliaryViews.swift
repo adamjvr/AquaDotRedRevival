@@ -72,7 +72,7 @@ struct AquaDotScoresView: View {
                         emptyText: "no completed runs yet"
                     )
 
-                    Text("Phase 3 restores durable score history. Name entry is still a later fidelity target; current runs are recorded as anonymous.")
+                    Text("Phase 3D restores a dedicated post-Game Over name-entry state while keeping the terminal score durable before entry.")
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundStyle(Color.white.opacity(0.45))
                         .multilineTextAlignment(.center)
@@ -137,3 +137,79 @@ struct AquaDotScoresView: View {
     }
 }
 
+
+
+/// The original binary has a dedicated high-score-entry state (`Opening.cc`) and
+/// separate preference routines for testing/inserting named scores (`Prefs.cc`).
+/// Exact historical entry-screen artwork and text-length rules are not yet proved,
+/// so this is deliberately a modern SwiftUI shell around that recovered state
+/// transition rather than a claim of pixel-identical presentation.
+struct AquaDotHighScoreEntryView: View {
+    @ObservedObject var controller: AquaDotAppController
+    @State private var playerName = ""
+    @FocusState private var nameFieldFocused: Bool
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            if let record = controller.pendingHighScore {
+                VStack(spacing: 20) {
+                    Text("high score")
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .italic()
+                        .foregroundStyle(.cyan)
+
+                    Text("score  \(record.score)")
+                        .font(.system(size: 26, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.green)
+
+                    Text("levels cleared  \(record.levelsCleared)")
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.72))
+
+                    Text("enter your name")
+                        .font(.system(size: 17, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white)
+
+                    TextField("anonymous", text: $playerName)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(size: 20, weight: .semibold, design: .monospaced))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 380)
+                        .focused($nameFieldFocused)
+                        .onSubmit { submit() }
+
+                    HStack(spacing: 14) {
+                        Button("Keep Anonymous") {
+                            controller.keepPendingHighScoreAnonymous()
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button("Save Name") { submit() }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.cyan)
+                    }
+                }
+                .padding(36)
+                .frame(maxWidth: 620)
+                .background(Color.white.opacity(0.045))
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22)
+                        .stroke(Color.cyan.opacity(0.65), lineWidth: 1.5)
+                )
+                .padding(28)
+            } else {
+                ProgressView()
+                    .tint(.cyan)
+                    .onAppear { controller.keepPendingHighScoreAnonymous() }
+            }
+        }
+        .onAppear { nameFieldFocused = true }
+    }
+
+    private func submit() {
+        controller.submitPendingHighScoreName(playerName)
+    }
+}
