@@ -1,0 +1,32 @@
+Bug Strategy Wanders slowly and randomly in areas where there are uneaten
+normal dots. If aquadot!red eats any dots in the vicinity however,
+Protector will get angry and pursue relentlessly.
+Defense Try to avoid eating dots around Protector. If you need to eat dots,
+“Protector”
+then try to do so behind him as he won't always notice dots being
+eaten there. If Protector starts chasing you, run into an area cleared
+of dots and eventually he will give up and start protecting the
+remaining dots again.
+Bug Strategy Wanders slowly and randomly until it notices aquadot!red moving
+nearby at which point he will speed up and attack.
+Defense Avoid the vicinity of Mantis. If Mantis gives chase then you can
+lose him by stopping completely. Lack of motion will confuse him
+“Mantis”
+and cause him to turn away.
+Bug Strategy Wanders randomly unless she sees aquadot!red nearby at which she
+will give chase at a very fast pace for a while.
+Defense Hermit is a little tricky if only because she does wander randomly
+so it can be difficult to determine where to go to avoid her. Once she
+“Hermit”
+is giving chase you basically need to weather the storm, that is, try
+to stay ahead of her until she gets bored and wanders off again.
+She'll give up faster if she has to make a lot of turns, and she is very
+slow at going through warps.
+Bug Strategy Chooses one of the other bug strategies at random at the beginning
+of the level (although she will never be a Reaper).
+Defense You better watch Neon carefully to determine what bug she's
+decided to emulate. Once you've determined that, then just follow
+“Neon”
+the defensive strategy for that bug. Note that if there is more than
+one Neon in a given level then they could be employing different
+strategies!

@@ -1,0 +1,64 @@
+{
+  "binary": "AquaDot!Red i386",
+  "difficulty_input": {
+    "normalizer": "min(originalDifficulty, 1.0)",
+    "interpolate_up_0x27574": "min(start + D * (middle - start), cap)",
+    "interpolate_down_0x275a4": "max(start - D * (start - middle), floor)"
+  },
+  "activity_engine": {
+    "parameter_setter": "0x20cf6",
+    "transition": "0x20d92",
+    "factor_clamp_max": 10.0,
+    "initial_transition_target": "low",
+    "initial_full_duration_seconds": 1.0,
+    "duration_rule": "requested duration scaled by remaining fraction of low/high factor span"
+  },
+  "hermit_personality_5": {
+    "low_activity": 0.5,
+    "high_activity": "min(1.1 + 0.5 * D, 1.8)",
+    "chase_graph_distance_max": 10,
+    "chase_transition_seconds": 0.5,
+    "return_transition_seconds": 1.0,
+    "turn_continue_probability_after_four": "max(0, 1.0 - 0.1 * (turnCounter - 4))",
+    "warp_slowdown_exact_value": "unrecovered"
+  },
+  "protector_personality_6": {
+    "low_activity": "min(0.25 + 0.25 * D, 0.60)",
+    "high_activity": "min(1.20 + 0.10 * D, 1.40)",
+    "front_notice_distance_squared_strict": 100,
+    "behind_notice_distance_squared_strict": 25,
+    "notice_probability": 0.9,
+    "anger_decision_budget": 5,
+    "activity_transition_seconds": 2.0,
+    "early_release_probability": "0.30 - 0.03 * decisionsRemaining",
+    "patrol_candidate_fraction": 0.5
+  },
+  "mantis_personality_7": {
+    "low_activity": 0.5,
+    "high_activity": 1.0,
+    "movement_notice_gate_microseconds": 100000.0,
+    "movement_notice_gate_seconds": 0.1,
+    "front_notice_distance_squared_strict": 225,
+    "behind_notice_distance_squared_strict": 49,
+    "notice_probability": 0.3,
+    "attack_transition_seconds": 2.0,
+    "confusion_transition_seconds": 1.0,
+    "confusion_counter_initial": 5,
+    "interrupted_movement_probability_per_sample": 0.05
+  },
+  "raw_constant_addresses": {
+    "0x76984": 1.0,
+    "0x76988": 0.5,
+    "0x76998": 10.0,
+    "0x76a18": 1000000.0,
+    "0x76a40": 100000.0,
+    "0x76d98": 18.0,
+    "0x76930": 1.0,
+    "0x76948": 0.5,
+    "0x76970": 0.3,
+    "0x76e70": 0.2,
+    "0x76ec8": -0.1,
+    "0x76ef0": -0.03,
+    "0x76ef8": 0.05
+  }
+}

@@ -20,22 +20,11 @@ final class AquaDotGameSimulation {
         var bugWarpSlowdown: Double = 0.22
         var postMunchBugRecovery: Double = 1.35
 
-        // Phase 3B advanced-personality tuning. The qualitative contracts come
-        // directly from the shipped strategy guide; these numeric multipliers,
-        // radii and alert durations remain isolated reconstruction constants.
-        var protectorPatrolSpeedMultiplier: Double = 0.70
-        var protectorChaseSpeedMultiplier: Double = 1.18
-        var protectorNoticeRadius: Int = 4
-        var protectorAngerDuration: Double = 6.0
-        var mantisWanderSpeedMultiplier: Double = 0.70
-        var mantisAttackSpeedMultiplier: Double = 1.28
-        var mantisNoticeRadius: Int = 5
-        var mantisAttackDuration: Double = 3.5
-        var hermitWanderSpeedMultiplier: Double = 0.76
-        var hermitChaseSpeedMultiplier: Double = 1.48
-        var hermitNoticeRadius: Int = 4
-        var hermitChaseDuration: Double = 5.2
-        var hermitTurnAlertPenalty: Double = 1.8
+        // Phase 4F replaces the guessed Protector/Mantis/Hermit speed, radius
+        // and timer constants with recovered state machines and activity ramps.
+        // The guide explicitly says Hermit is *very slow* in warps, but the exact
+        // historical warp delay has not yet been isolated in the binary. Keep this
+        // one compatibility bridge explicit rather than pretending it is recovered.
         var hermitWarpSlowdown: Double = 0.95
 
         // Phase 2.1.1 bug fix: the previous collision threshold was much
@@ -53,6 +42,11 @@ final class AquaDotGameSimulation {
     private let pathfinding: AquaDotPathfinding
     private var pendingEvents: [AquaDotGameEvent] = []
     private var damageEventCooldown: Double = 0
+
+    // Phase 4F recovered advanced bug AI runtime.
+    // Kept separate from Phase 3B's provisional timer fields so the recovered
+    // state machines and the remaining translation boundaries stay auditable.
+    private var advancedBugRuntime: [Character: AquaDotRecoveredAdvancedBugRuntime] = [:]
 
     /// Populated exactly once when the required dot field is cleared. The scene
     /// consumes this for the recovered tween-level score presentation.
@@ -165,6 +159,19 @@ final class AquaDotGameSimulation {
             gameOver: false,
             isPaused: false
         )
+
+        // Initialize the recovered personality-specific AI at the same level
+        // difficulty already supplied to original Skill/campaign logic. The
+        // executable clamps this input to 1.0 before interpolating AI parameters.
+        advancedBugRuntime.removeAll(keepingCapacity: true)
+        for bug in state.bugs {
+            if let runtime = AquaDotRecoveredAdvancedBugRuntime(
+                personality: bug.effectivePersonality,
+                difficulty: skillBaseDifficulty
+            ) {
+                advancedBugRuntime[bug.id] = runtime
+            }
+        }
 
         collect(at: first)
     }
@@ -487,7 +494,7 @@ final class AquaDotGameSimulation {
     // MARK: - Bugs
 
     private func updateBugs(deltaTime: Double) {
-        updateAdvancedBugAwareness(deltaTime: deltaTime)
+        updateRecoveredAdvancedBugState(deltaTime: deltaTime)
 
         for index in state.bugs.indices {
             if state.bugs[index].recoveryDelay > 0 {
@@ -504,24 +511,18 @@ final class AquaDotGameSimulation {
             case .hunter, .blocker:
                 break
             case .sneaker:
-                // Guide: turns very fast, but is very slow when moving straight.
+                // Guide-backed behavior; exact basic-personality speed constants
+                // remain outside Phase 4F's advanced-personality recovery scope.
                 speed *= bug.lastSegmentWasTurn ? 1.38 : 0.58
             case .houndDog:
                 speed *= houndDogHasRecentScent(bug) ? 1.32 : 0.92
-            case .protector:
-                speed *= bug.alertTimeRemaining > 0
-                    ? tuning.protectorChaseSpeedMultiplier
-                    : tuning.protectorPatrolSpeedMultiplier
-            case .mantis:
-                speed *= bug.alertTimeRemaining > 0
-                    ? tuning.mantisAttackSpeedMultiplier
-                    : tuning.mantisWanderSpeedMultiplier
-            case .hermit:
-                speed *= bug.alertTimeRemaining > 0
-                    ? tuning.hermitChaseSpeedMultiplier
-                    : tuning.hermitWanderSpeedMultiplier
+            case .protector, .mantis, .hermit:
+                // Phase 4F: original low/high enemy activity factors and timed
+                // ramps replace the Phase 3B guessed speed multipliers.
+                speed *= advancedBugRuntime[bug.id]?.activity.current ?? 1.0
             case .neon:
-                // `effectivePersonality` never returns Neon unless state is malformed.
+                // `effectivePersonality` normally dispatches Neon to its emulated
+                // strategy. This is only a malformed-state fallback.
                 break
             }
 
@@ -569,20 +570,6 @@ final class AquaDotGameSimulation {
 
         let turned = bug.movementDirection != nil && bug.movementDirection != direction
         state.bugs[index].lastSegmentWasTurn = turned
-        if bug.effectivePersonality == .hermit,
-           state.bugs[index].alertTimeRemaining > 0,
-           turned {
-            state.bugs[index].turnsWhileAlerted += 1
-            state.bugs[index].alertTimeRemaining = max(
-                0,
-                state.bugs[index].alertTimeRemaining - tuning.hermitTurnAlertPenalty
-            )
-            if state.bugs[index].turnsWhileAlerted >= 3 {
-                state.bugs[index].alertTimeRemaining = 0
-                state.bugs[index].awarenessCooldown = max(state.bugs[index].awarenessCooldown, 1.4)
-            }
-        }
-
         state.bugs[index].movementDirection = direction
         switch edge.kind {
         case .corridor:
@@ -605,7 +592,10 @@ final class AquaDotGameSimulation {
                 state.bugs[index].movementDirection = nil
             }
 
-            // Strategy guide explicitly notes that bugs generally slow down in warps.
+            // Guide and binary architecture prove generic warp slowdown. Hermit is
+            // explicitly "very slow" in warps, but Phase 4F did not yet recover
+            // the exact Hermit warp-delay scalar, so this one compatibility value
+            // intentionally remains isolated in Tuning.
             let warpDelay = state.bugs[index].effectivePersonality == .hermit
                 ? tuning.hermitWarpSlowdown
                 : tuning.bugWarpSlowdown
@@ -641,9 +631,7 @@ final class AquaDotGameSimulation {
         }
 
         if invisible {
-            let edges = topology.edges(from: bug.currentNode).filter { $0.direction != reverse }
-            let usable = edges.isEmpty ? topology.edges(from: bug.currentNode) : edges
-            return usable.isEmpty ? nil : usable[random.int(upperBound: usable.count)].direction
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
         }
 
         let target: GridPosition
@@ -672,130 +660,469 @@ final class AquaDotGameSimulation {
                 return randomBugDirection(from: bug.currentNode, avoiding: reverse)
             }
         case .protector:
-            if bug.alertTimeRemaining > 0 {
-                target = player
-            } else if let protectedDot = nearestNormalDot(to: bug.currentNode) {
-                target = protectedDot
-            } else {
-                return randomBugDirection(from: bug.currentNode, avoiding: reverse)
-            }
+            return chooseRecoveredProtectorDirection(for: bug, avoiding: reverse)
         case .mantis:
-            let nearby = (pathfinding.shortestDistance(from: bug.currentNode, to: player) ?? Int.max)
-                <= tuning.mantisNoticeRadius
-            if bug.alertTimeRemaining > 0 {
-                target = player
-            } else if state.player.nextNode == nil && nearby {
-                return pathfinding.directionAway(from: bug.currentNode, threat: player, avoiding: reverse)
-            } else {
-                return randomBugDirection(from: bug.currentNode, avoiding: reverse)
-            }
+            return chooseRecoveredMantisDirection(for: bug, avoiding: reverse)
         case .hermit:
-            if bug.alertTimeRemaining > 0 {
-                target = player
-            } else {
-                return randomBugDirection(from: bug.currentNode, avoiding: reverse)
-            }
+            return chooseRecoveredHermitDirection(for: bug, avoiding: reverse)
         case .neon:
+            // Neon is normally dispatched through `effectivePersonality`. Exact
+            // original Neon strategy-dispatch code remains a later RE target.
             return randomBugDirection(from: bug.currentNode, avoiding: reverse)
         }
         return pathfinding.shortestDirection(from: bug.currentNode, to: target, avoiding: reverse)
     }
 
+    // MARK: - Phase 4F recovered advanced bug AI
+
+    /// The original Protector receives this event directly when a required dot is
+    /// eaten. It uses squared grid distance, a front/behind range split, a 90%
+    /// notice test, a five-decision anger budget and a two-second activity ramp.
     private func notifyProtectorsOfDotEaten(at position: GridPosition) {
-        for index in state.bugs.indices where state.bugs[index].effectivePersonality == .protector {
-            let distance = pathfinding.shortestDistance(
-                from: state.bugs[index].currentNode,
-                to: position
-            ) ?? Int.max
-            guard distance <= tuning.protectorNoticeRadius else { continue }
-            state.bugs[index].alertTimeRemaining = max(
-                state.bugs[index].alertTimeRemaining,
-                tuning.protectorAngerDuration
+        for index in state.bugs.indices {
+            let bug = state.bugs[index]
+            guard bug.mode == .hunting,
+                  bug.effectivePersonality == .protector,
+                  var runtime = advancedBugRuntime[bug.id] else { continue }
+
+            if runtime.protectorMode == .angry {
+                // Original handler only refreshes a nearly-expired anger budget.
+                if runtime.protectorDecisionsRemaining <= 4 {
+                    runtime.protectorDecisionsRemaining = AquaDotRecoveredAdvancedBugAI.protectorDecisionBudget
+                }
+                advancedBugRuntime[bug.id] = runtime
+                continue
+            }
+
+            let observer = roundedBugGridPosition(bug)
+            guard AquaDotRecoveredAdvancedBugAI.isInsideDirectionalNoticeRange(
+                observer: observer,
+                facing: bug.movementDirection,
+                target: position,
+                frontDistanceSquared: AquaDotRecoveredAdvancedBugAI.protectorFrontDistanceSquared,
+                behindDistanceSquared: AquaDotRecoveredAdvancedBugAI.protectorBehindDistanceSquared
+            ), random.double() < AquaDotRecoveredAdvancedBugAI.protectorNoticeProbability else {
+                advancedBugRuntime[bug.id] = runtime
+                continue
+            }
+
+            runtime.protectorMode = .angry
+            runtime.protectorTarget = nil
+            runtime.protectorDecisionsRemaining = AquaDotRecoveredAdvancedBugAI.protectorDecisionBudget
+            runtime.activity.transitionHigh(
+                fullDuration: AquaDotRecoveredAdvancedBugAI.protectorTransitionSeconds
             )
-            state.bugs[index].awarenessCooldown = 0
+            advancedBugRuntime[bug.id] = runtime
         }
     }
 
-    private func updateAdvancedBugAwareness(deltaTime: Double) {
+    /// Per-fixed-step adapter around the event/timer portions of the recovered
+    /// advanced state. Activity interpolation is exact in shape and deterministic;
+    /// Mantis' historical stopped-player *sample* counter is normalized to 60 Hz
+    /// because the shipped executable's outer update cadence is not yet proven.
+    private func updateRecoveredAdvancedBugState(deltaTime: Double) {
         let player = state.player.currentNode
         let playerMoving = state.player.nextNode != nil
 
         for index in state.bugs.indices {
-            state.bugs[index].awarenessCooldown = max(
-                0,
-                state.bugs[index].awarenessCooldown - deltaTime
-            )
-            guard state.bugs[index].mode == .hunting else { continue }
+            let bug = state.bugs[index]
+            guard var runtime = advancedBugRuntime[bug.id] else { continue }
+            runtime.activity.step(deltaTime: deltaTime)
 
-            let distance = pathfinding.shortestDistance(
-                from: state.bugs[index].currentNode,
-                to: player
-            ) ?? Int.max
+            guard bug.mode == .hunting else {
+                advancedBugRuntime[bug.id] = runtime
+                continue
+            }
 
-            switch state.bugs[index].effectivePersonality {
-            case .protector:
-                if state.bugs[index].alertTimeRemaining > 0 {
-                    // Guide: reaching an already-cleared area helps AquaDot shake
-                    // an angry Protector. Decay substantially faster when no normal
-                    // dots are close to the player's current position.
-                    let cleared = !normalDotExists(near: player, radius: tuning.protectorNoticeRadius)
-                    let decay = cleared ? deltaTime * 3.0 : deltaTime
-                    state.bugs[index].alertTimeRemaining = max(
-                        0,
-                        state.bugs[index].alertTimeRemaining - decay
-                    )
-                    if state.bugs[index].alertTimeRemaining == 0 {
-                        state.bugs[index].awarenessCooldown = max(
-                            state.bugs[index].awarenessCooldown,
-                            1.0
+            if bug.effectivePersonality == .mantis {
+                if playerMoving {
+                    runtime.mantisStoppedAccumulator = 0
+                    runtime.mantisNoticeElapsed += deltaTime
+
+                    while runtime.mantisNoticeElapsed >= AquaDotRecoveredAdvancedBugAI.mantisNoticeGateSeconds {
+                        runtime.mantisNoticeElapsed -= AquaDotRecoveredAdvancedBugAI.mantisNoticeGateSeconds
+
+                        // The original timestamp gate continues to advance while
+                        // attacking, but only wandering Mantis can acquire here.
+                        guard runtime.mantisMode == .wandering else { continue }
+                        let observer = roundedBugGridPosition(bug)
+                        guard AquaDotRecoveredAdvancedBugAI.isInsideDirectionalNoticeRange(
+                            observer: observer,
+                            facing: bug.movementDirection,
+                            target: player,
+                            frontDistanceSquared: AquaDotRecoveredAdvancedBugAI.mantisFrontDistanceSquared,
+                            behindDistanceSquared: AquaDotRecoveredAdvancedBugAI.mantisBehindDistanceSquared
+                        ), random.double() < AquaDotRecoveredAdvancedBugAI.mantisNoticeProbability else {
+                            continue
+                        }
+
+                        runtime.mantisMode = .attacking
+                        runtime.mantisInterruptedMovementSamples = 0
+                        runtime.activity.transitionHigh(
+                            fullDuration: AquaDotRecoveredAdvancedBugAI.mantisAttackTransitionSeconds
                         )
                     }
-                }
-
-            case .mantis:
-                if playerMoving,
-                   distance <= tuning.mantisNoticeRadius,
-                   state.bugs[index].awarenessCooldown <= 0 {
-                    state.bugs[index].alertTimeRemaining = max(
-                        state.bugs[index].alertTimeRemaining,
-                        tuning.mantisAttackDuration
-                    )
-                } else if !playerMoving && distance <= tuning.mantisNoticeRadius {
-                    // The guide explicitly says complete stillness confuses Mantis.
-                    state.bugs[index].alertTimeRemaining = 0
-                    state.bugs[index].awarenessCooldown = max(
-                        state.bugs[index].awarenessCooldown,
-                        0.9
-                    )
-                } else {
-                    state.bugs[index].alertTimeRemaining = max(
-                        0,
-                        state.bugs[index].alertTimeRemaining - deltaTime
-                    )
-                }
-
-            case .hermit:
-                if state.bugs[index].alertTimeRemaining > 0 {
-                    state.bugs[index].alertTimeRemaining = max(
-                        0,
-                        state.bugs[index].alertTimeRemaining - deltaTime
-                    )
-                    if state.bugs[index].alertTimeRemaining == 0 {
-                        state.bugs[index].awarenessCooldown = max(
-                            state.bugs[index].awarenessCooldown,
-                            1.5
-                        )
+                } else if runtime.mantisMode == .attacking {
+                    runtime.mantisStoppedAccumulator += deltaTime
+                    while runtime.mantisStoppedAccumulator >= AquaDotRecoveredAdvancedBugAI.mantisStoppedSampleSeconds {
+                        runtime.mantisStoppedAccumulator -= AquaDotRecoveredAdvancedBugAI.mantisStoppedSampleSeconds
+                        runtime.mantisInterruptedMovementSamples += 1
                     }
-                } else if state.bugs[index].awarenessCooldown <= 0,
-                          distance <= tuning.hermitNoticeRadius {
-                    state.bugs[index].alertTimeRemaining = tuning.hermitChaseDuration
-                    state.bugs[index].turnsWhileAlerted = 0
                 }
+            }
 
-            case .hunter, .blocker, .sneaker, .houndDog, .neon:
-                break
+            advancedBugRuntime[bug.id] = runtime
+        }
+    }
+
+    private func chooseRecoveredProtectorDirection(
+        for bug: AquaDotBugState,
+        avoiding reverse: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        guard var runtime = advancedBugRuntime[bug.id] else {
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        }
+
+        if runtime.protectorMode == .angry {
+            runtime.protectorDecisionsRemaining -= 1
+            if runtime.protectorDecisionsRemaining < 0 {
+                releaseProtectorToPatrol(&runtime)
+                let direction = chooseProtectorPatrolDirection(
+                    for: bug,
+                    runtime: &runtime,
+                    avoiding: reverse
+                )
+                advancedBugRuntime[bug.id] = runtime
+                return direction
+            }
+
+            // 0x1bb6e is the original shared aggressive chooser. The Revival's
+            // cached shortest-path direction is our explicit graph-level adapter.
+            let aggressive = pathfinding.shortestDirection(
+                from: bug.currentNode,
+                to: state.player.currentNode,
+                avoiding: reverse
+            ) ?? randomBugDirection(from: bug.currentNode, avoiding: reverse)
+
+            if let aggressive,
+               let current = bug.movementDirection,
+               aggressive != current,
+               random.double() < AquaDotRecoveredAdvancedBugAI.protectorEarlyReleaseProbability(
+                    decisionsRemaining: runtime.protectorDecisionsRemaining
+               ) {
+                // Original 0x1b5f4 selects an alternate direction before dropping
+                // back to patrol. Current graph random selection is the adapter.
+                let alternate = randomBugDirection(from: bug.currentNode, avoiding: reverse) ?? aggressive
+                releaseProtectorToPatrol(&runtime)
+                advancedBugRuntime[bug.id] = runtime
+                return alternate
+            }
+
+            advancedBugRuntime[bug.id] = runtime
+            return aggressive
+        }
+
+        let direction = chooseProtectorPatrolDirection(for: bug, runtime: &runtime, avoiding: reverse)
+        advancedBugRuntime[bug.id] = runtime
+        return direction
+    }
+
+    private func releaseProtectorToPatrol(_ runtime: inout AquaDotRecoveredAdvancedBugRuntime) {
+        runtime.protectorMode = .selectingPatrol
+        runtime.protectorTarget = nil
+        runtime.protectorDecisionsRemaining = 0
+        runtime.activity.transitionLow(
+            fullDuration: AquaDotRecoveredAdvancedBugAI.protectorTransitionSeconds
+        )
+    }
+
+    private func chooseProtectorPatrolDirection(
+        for bug: AquaDotBugState,
+        runtime: inout AquaDotRecoveredAdvancedBugRuntime,
+        avoiding reverse: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        switch runtime.protectorMode {
+        case .selectingPatrol:
+            guard let target = recoveredProtectorPatrolTarget() else {
+                return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+            }
+            runtime.protectorTarget = target
+            runtime.protectorMode = .travellingToPatrol
+            if target == bug.currentNode {
+                runtime.protectorMode = .patrolling
+                return recoveredProtectorDotBiasedDirection(from: bug.currentNode, avoiding: reverse)
+            }
+            return pathfinding.shortestDirection(from: bug.currentNode, to: target, avoiding: reverse)
+                ?? randomBugDirection(from: bug.currentNode, avoiding: reverse)
+
+        case .travellingToPatrol:
+            guard let target = runtime.protectorTarget else {
+                runtime.protectorMode = .selectingPatrol
+                return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+            }
+            if target == bug.currentNode {
+                runtime.protectorMode = .patrolling
+                return recoveredProtectorDotBiasedDirection(from: bug.currentNode, avoiding: reverse)
+            }
+            return pathfinding.shortestDirection(from: bug.currentNode, to: target, avoiding: reverse)
+                ?? randomBugDirection(from: bug.currentNode, avoiding: reverse)
+
+        case .patrolling:
+            if let direction = recoveredProtectorDotBiasedDirection(from: bug.currentNode, avoiding: reverse) {
+                return direction
+            }
+            runtime.protectorMode = .selectingPatrol
+            runtime.protectorTarget = nil
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+
+        case .angry:
+            return nil
+        }
+    }
+
+    /// Original 0x33cf2 sorts intersections by remaining-dot count, considers
+    /// through index floor(n*0.5), drops zero-weight tail entries and chooses from
+    /// that top group weighted by count. The original maze engine owns explicit
+    /// intersection records; the Revival translates those records to graph nodes
+    /// with at least three corridor exits and assigns each normal dot to its
+    /// nearest such node using the cached distance matrix.
+    private func recoveredProtectorPatrolTarget() -> GridPosition? {
+        var candidates = Array(topology.traversable.filter { position in
+            topology.edges(from: position).reduce(into: 0) { count, edge in
+                if case .corridor = edge.kind { count += 1 }
+            } >= 3
+        })
+        if candidates.isEmpty { candidates = Array(topology.traversable) }
+        guard !candidates.isEmpty else { return nil }
+
+        let stableCandidates = candidates.sorted(by: stableGridOrder)
+        var weights = Dictionary(uniqueKeysWithValues: stableCandidates.map { ($0, 0) })
+        let normalDots = state.dots.compactMap { position, kind in
+            kind == .normal ? position : nil
+        }
+
+        for dot in normalDots {
+            guard let nearest = stableCandidates.min(by: { lhs, rhs in
+                let ld = pathfinding.shortestDistance(from: lhs, to: dot) ?? Int.max
+                let rd = pathfinding.shortestDistance(from: rhs, to: dot) ?? Int.max
+                if ld != rd { return ld < rd }
+                return stableGridOrder(lhs, rhs)
+            }) else { continue }
+            weights[nearest, default: 0] += 1
+        }
+
+        let ranked = stableCandidates.sorted { lhs, rhs in
+            let lw = weights[lhs, default: 0]
+            let rw = weights[rhs, default: 0]
+            if lw != rw { return lw > rw }
+            return stableGridOrder(lhs, rhs)
+        }
+        let topCount = min(ranked.count, Int(floor(Double(ranked.count) * 0.5)) + 1)
+        let top = Array(ranked.prefix(topCount)).filter { weights[$0, default: 0] > 0 }
+        guard !top.isEmpty else { return nil }
+        return weightedGridChoice(top, weights: weights)
+    }
+
+    /// Graph-level translation of Protector state 1's per-direction remaining-dot
+    /// counts. Each normal dot contributes to the outgoing branch that reaches it
+    /// with the shortest cached distance; weighted choice then mirrors the original
+    /// dot-density bias without inventing a fixed patrol destination.
+    private func recoveredProtectorDotBiasedDirection(
+        from position: GridPosition,
+        avoiding reverse: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        let allEdges = topology.edges(from: position)
+        let filtered = allEdges.filter { $0.direction != reverse }
+        let usable = (filtered.isEmpty ? allEdges : filtered).sorted {
+            $0.direction.rawValue < $1.direction.rawValue
+        }
+        guard !usable.isEmpty else { return nil }
+
+        var weights = Array(repeating: 0, count: usable.count)
+        for (dot, kind) in state.dots where kind == .normal {
+            var bestIndex: Int?
+            var bestDistance = Int.max
+            for (index, edge) in usable.enumerated() {
+                let distance = pathfinding.shortestDistance(from: edge.destination, to: dot) ?? Int.max
+                if distance < bestDistance {
+                    bestDistance = distance
+                    bestIndex = index
+                }
+            }
+            if let bestIndex, bestDistance < Int.max {
+                weights[bestIndex] += 1
             }
         }
+
+        let total = weights.reduce(0, +)
+        guard total > 0 else { return nil }
+        var draw = random.int(upperBound: total)
+        for (index, weight) in weights.enumerated() where weight > 0 {
+            if draw < weight { return usable[index].direction }
+            draw -= weight
+        }
+        return usable.last?.direction
+    }
+
+    private func chooseRecoveredMantisDirection(
+        for bug: AquaDotBugState,
+        avoiding reverse: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        guard var runtime = advancedBugRuntime[bug.id] else {
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        }
+
+        switch runtime.mantisMode {
+        case .wandering:
+            advancedBugRuntime[bug.id] = runtime
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+
+        case .attacking:
+            let playerMoving = state.player.nextNode != nil
+            let interruptedChance = min(
+                1.0,
+                Double(runtime.mantisInterruptedMovementSamples)
+                    * AquaDotRecoveredAdvancedBugAI.mantisStoppedSampleProbability
+            )
+            if !playerMoving ||
+                (runtime.mantisInterruptedMovementSamples > 0 && random.double() < interruptedChance) {
+                enterMantisConfusion(&runtime)
+                let direction = chooseRecoveredMantisConfusionDirection(
+                    for: bug,
+                    runtime: &runtime,
+                    avoiding: reverse
+                )
+                advancedBugRuntime[bug.id] = runtime
+                return direction
+            }
+
+            let direction = pathfinding.shortestDirection(
+                from: bug.currentNode,
+                to: state.player.currentNode,
+                avoiding: reverse
+            ) ?? randomBugDirection(from: bug.currentNode, avoiding: reverse)
+            advancedBugRuntime[bug.id] = runtime
+            return direction
+
+        case .confused:
+            let direction = chooseRecoveredMantisConfusionDirection(
+                for: bug,
+                runtime: &runtime,
+                avoiding: reverse
+            )
+            advancedBugRuntime[bug.id] = runtime
+            return direction
+        }
+    }
+
+    private func enterMantisConfusion(_ runtime: inout AquaDotRecoveredAdvancedBugRuntime) {
+        runtime.mantisMode = .confused
+        runtime.mantisConfusionCounter = AquaDotRecoveredAdvancedBugAI.mantisConfusionCounter
+        runtime.mantisInterruptedMovementSamples = 0
+        runtime.mantisStoppedAccumulator = 0
+        runtime.activity.transitionLow(
+            fullDuration: AquaDotRecoveredAdvancedBugAI.mantisReturnTransitionSeconds
+        )
+    }
+
+    private func chooseRecoveredMantisConfusionDirection(
+        for bug: AquaDotBugState,
+        runtime: inout AquaDotRecoveredAdvancedBugRuntime,
+        avoiding reverse: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        // Original 0x1b478 is a probabilistic turn-away chooser whose internal
+        // graph weighting is not yet recovered. directionAway preserves the
+        // documented "turn away" behavior and keeps that boundary explicit.
+        runtime.mantisConfusionCounter -= 1
+        let direction = pathfinding.directionAway(
+            from: bug.currentNode,
+            threat: state.player.currentNode,
+            avoiding: reverse
+        ) ?? randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        if runtime.mantisConfusionCounter < 0 {
+            runtime.mantisMode = .wandering
+            runtime.mantisNoticeElapsed = 0
+        }
+        return direction
+    }
+
+    private func chooseRecoveredHermitDirection(
+        for bug: AquaDotBugState,
+        avoiding reverse: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        guard var runtime = advancedBugRuntime[bug.id] else {
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        }
+
+        // Original +12 state forces the first four post-abandonment decisions to
+        // remain random before distance is reconsidered. At count >=5, distance is
+        // checked on every decision so a newly-near AquaDot can be reacquired.
+        if (1...4).contains(runtime.hermitWanderDecisionCount) {
+            runtime.hermitWanderDecisionCount += 1
+            advancedBugRuntime[bug.id] = runtime
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        }
+
+        let player = state.player.currentNode
+        let distance = pathfinding.shortestDistance(from: bug.currentNode, to: player) ?? Int.max
+        guard distance <= AquaDotRecoveredAdvancedBugAI.hermitChaseDistance,
+              let chaseDirection = pathfinding.shortestDirection(
+                  from: bug.currentNode,
+                  to: player,
+                  avoiding: reverse
+              ) else {
+            abandonHermitChase(&runtime)
+            advancedBugRuntime[bug.id] = runtime
+            return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        }
+
+        let requiresTurn = bug.movementDirection != nil && bug.movementDirection != chaseDirection
+        if requiresTurn {
+            let shouldContinue: Bool
+            if runtime.hermitTurnCounter <= 4 {
+                shouldContinue = true
+            } else {
+                shouldContinue = random.double() < AquaDotRecoveredAdvancedBugAI.hermitContinueProbability(
+                    turnCounter: runtime.hermitTurnCounter
+                )
+            }
+            guard shouldContinue else {
+                abandonHermitChase(&runtime)
+                advancedBugRuntime[bug.id] = runtime
+                return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+            }
+            runtime.hermitTurnCounter += 1
+            runtime.hermitWanderDecisionCount = 0
+        } else if runtime.hermitTurnCounter == 0 {
+            runtime.hermitTurnCounter = 1
+            runtime.hermitWanderDecisionCount = 0
+        }
+
+        if !runtime.hermitChasing {
+            runtime.hermitChasing = true
+            runtime.activity.transitionHigh(
+                fullDuration: AquaDotRecoveredAdvancedBugAI.hermitAttackTransitionSeconds
+            )
+        }
+        advancedBugRuntime[bug.id] = runtime
+        return chaseDirection
+    }
+
+    private func abandonHermitChase(_ runtime: inout AquaDotRecoveredAdvancedBugRuntime) {
+        runtime.hermitChasing = false
+        runtime.hermitTurnCounter = 0
+        runtime.hermitWanderDecisionCount += 1
+        runtime.activity.transitionLow(
+            fullDuration: AquaDotRecoveredAdvancedBugAI.hermitReturnTransitionSeconds
+        )
+    }
+
+    private func roundedBugGridPosition(_ bug: AquaDotBugState) -> GridPosition {
+        let rendered = bug.renderPosition()
+        return GridPosition(
+            x: Int(rendered.x.rounded()),
+            y: Int(rendered.y.rounded())
+        )
     }
 
     private func randomBugDirection(
@@ -807,23 +1134,24 @@ final class AquaDotGameSimulation {
         return usable.isEmpty ? nil : usable[random.int(upperBound: usable.count)].direction
     }
 
-    private func nearestNormalDot(to position: GridPosition) -> GridPosition? {
-        state.dots.compactMap { candidate, kind -> GridPosition? in
-            kind == .normal ? candidate : nil
-        }.min { lhs, rhs in
-            let ld = abs(lhs.x - position.x) + abs(lhs.y - position.y)
-            let rd = abs(rhs.x - position.x) + abs(rhs.y - position.y)
-            if ld != rd { return ld < rd }
-            if lhs.y != rhs.y { return lhs.y < rhs.y }
-            return lhs.x < rhs.x
+    private func weightedGridChoice(
+        _ positions: [GridPosition],
+        weights: [GridPosition: Int]
+    ) -> GridPosition? {
+        let total = positions.reduce(0) { $0 + max(0, weights[$1, default: 0]) }
+        guard total > 0 else { return nil }
+        var draw = random.int(upperBound: total)
+        for position in positions {
+            let weight = max(0, weights[position, default: 0])
+            if draw < weight { return position }
+            draw -= weight
         }
+        return positions.last
     }
 
-    private func normalDotExists(near position: GridPosition, radius: Int) -> Bool {
-        state.dots.contains { candidate, kind in
-            guard kind == .normal else { return false }
-            return (pathfinding.shortestDistance(from: position, to: candidate) ?? Int.max) <= radius
-        }
+    private func stableGridOrder(_ lhs: GridPosition, _ rhs: GridPosition) -> Bool {
+        if lhs.y != rhs.y { return lhs.y < rhs.y }
+        return lhs.x < rhs.x
     }
 
     private func resolveBugCollisions(deltaTime: Double) {
