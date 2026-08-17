@@ -2,10 +2,17 @@ import Testing
 @testable import AquaDotRed_Revival
 
 struct Phase3BGameplayAuthenticityTests {
-    @Test func fullNamedBugRosterIsAvailable() {
-        #expect(AquaDotBugPersonality.allCases.count == 8)
-        #expect(Set(AquaDotBugPersonality.basicRoster) == Set([.hunter, .blocker, .sneaker, .houndDog]))
-        #expect(Set(AquaDotBugPersonality.advancedRoster) == Set([.protector, .mantis, .hermit, .neon]))
+    @Test func bugRosterReflectsPhase4GCorrectionWhileRetainingLegacyNeonDecode() {
+        // Phase 4G recovered Lone Wolf as the missing eighth real strategy and
+        // proved Neon is a presentation disguise. The `.neon` enum case remains
+        // only so pre-4G state/source can still decode, hence nine Codable cases.
+        #expect(AquaDotBugPersonality.allCases.count == 9)
+        #expect(Set(AquaDotBugPersonality.basicRoster) == Set([
+            .hunter, .blocker, .sneaker, .houndDog, .loneWolf,
+        ]))
+        #expect(Set(AquaDotBugPersonality.advancedRoster) == Set([
+            .protector, .mantis, .hermit,
+        ]))
         #expect(!AquaDotBugPersonality.neonEmulationCandidates.contains(.neon))
     }
 
@@ -26,17 +33,20 @@ struct Phase3BGameplayAuthenticityTests {
         #expect(abs(AquaDotRecoveredSproutMechanics.slowCureDelay.upperBound - 0.9375) < 0.000001)
     }
 
-    @Test func freshCampaignKeepsTheOriginalPhase2BasicFour() {
+    @Test func legacyPhase3BRosterHelperStillReturnsFourOrdinaryStrategies() {
+        // This helper is retained for historical tests/migration only. Normal
+        // Phase 4G level creation uses AquaDotRecoveredBugRoster instead.
         var random = AquaDotSeededRandom(seed: 1234)
         let roster = AquaDotGameSimulation.phase3BBugRoster(
             levelsCleared: 0,
             enemyCount: 4,
             random: &random
         )
-        #expect(Set(roster) == Set(AquaDotBugPersonality.basicRoster))
+        #expect(roster.count == 4)
+        #expect(roster.allSatisfy { AquaDotBugPersonality.basicRoster.contains($0) })
     }
 
-    @Test func laterCampaignUnlocksAdvancedPersonalitiesWithoutDroppingToFewerBugs() {
+    @Test func legacyPhase3BRosterHelperCanStillExerciseAdvancedStrategies() {
         var random = AquaDotSeededRandom(seed: 1234)
         let roster = AquaDotGameSimulation.phase3BBugRoster(
             levelsCleared: 6,

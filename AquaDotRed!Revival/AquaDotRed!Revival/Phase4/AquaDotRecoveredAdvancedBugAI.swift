@@ -228,7 +228,7 @@ struct AquaDotRecoveredAdvancedBugRuntime: Equatable, Sendable {
                 low: AquaDotRecoveredAdvancedBugAI.hermitLowActivity,
                 high: AquaDotRecoveredAdvancedBugAI.hermitHighActivity(difficulty: difficulty)
             )
-        case .hunter, .blocker, .sneaker, .houndDog, .neon:
+        case .hunter, .blocker, .sneaker, .houndDog, .loneWolf, .neon:
             return nil
         }
     }

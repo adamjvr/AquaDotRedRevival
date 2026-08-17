@@ -31,17 +31,27 @@ struct AquaDotAssetProvider {
         modeTexture(base: "P2_Player_\(appearance.rawValue)")
     }
 
-    func bugTexture(personality: AquaDotBugPersonality) -> SKTexture {
+    /// Phase 4G separates strategy from appearance exactly as the original
+    /// `setupEnemy` did. Neon substitutes the sprite only; it does not alter AI.
+    func bugTexture(
+        personality: AquaDotBugPersonality,
+        neonAppearance: Bool = false
+    ) -> SKTexture {
         let key: String
-        switch personality {
-        case .hunter: key = "Hunter"
-        case .blocker: key = "Blocker"
-        case .sneaker: key = "Sneaker"
-        case .houndDog: key = "HoundDog"
-        case .protector: key = "Protector"
-        case .mantis: key = "Mantis"
-        case .hermit: key = "Hermit"
-        case .neon: key = "Neon"
+        if neonAppearance {
+            key = "Neon"
+        } else {
+            switch personality {
+            case .hunter: key = "Hunter"
+            case .blocker: key = "Blocker"
+            case .sneaker: key = "Sneaker"
+            case .houndDog: key = "HoundDog"
+            case .loneWolf: key = "LoneWolf"
+            case .protector: key = "Protector"
+            case .mantis: key = "Mantis"
+            case .hermit: key = "Hermit"
+            case .neon: key = "Neon" // compatibility-only legacy state
+            }
         }
         return modeTexture(base: "P2_Bug_\(key)")
     }

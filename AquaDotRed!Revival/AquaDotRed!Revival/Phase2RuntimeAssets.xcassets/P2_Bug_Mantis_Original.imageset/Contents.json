@@ -1,13 +1,13 @@
 {
-  "images": [
+  "images" : [
     {
-      "idiom": "universal",
-      "filename": "P2_Bug_Mantis_Original.png",
-      "scale": "1x"
+      "filename" : "P2_Bug_Mantis_Original.png",
+      "idiom" : "universal",
+      "scale" : "1x"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   }
 }
