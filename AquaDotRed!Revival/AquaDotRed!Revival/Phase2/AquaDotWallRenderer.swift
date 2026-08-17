@@ -51,11 +51,10 @@ struct AquaDotWallMaterial {
 /// renderer drew both as thick tubes, which is why the maze silhouette felt wrong
 /// even though the underlying maze data was authentic.
 ///
-/// Numeric walls now use the exact recovered `(lines)` atlas frame mapping from
-/// `_drawLineIntersections`. Contiguous `X` regions are rendered as a batched,
-/// scalable recreation of the 9w/10w glossy wall material. This cuts thousands
-/// of per-cell SKShapeNodes down to a handful of static paths while matching the
-/// visual hierarchy visible in original screenshots.
+/// Numeric walls use the exact recovered `(lines)` frame map. Phase 4A also routes
+/// contiguous X cells through the recovered `_loadMaze` / `_drawMazePiece` selector
+/// and preserved SpriteWorld sheets in Original mode; Remastered keeps the scalable
+/// procedural network.
 final class AquaDotWallRenderer {
     let mode: AquaDotGraphicsMode
     let material: AquaDotWallMaterial
@@ -82,7 +81,20 @@ final class AquaDotWallRenderer {
             return nil
         })
 
-        renderSolidNetwork(blocked, layout: layout, into: root)
+        if mode == .original {
+            let recoveredSolidWalls = AquaDotOriginalSolidWallRenderer(
+                themeIndex: themeIndex,
+                material: material
+            ).render(cells: topology.wallCells, layout: layout, into: root)
+
+            // The shipped corpus is expected to stay on the recovered path. A
+            // malformed/custom selector state should degrade safely, not crash.
+            if !recoveredSolidWalls {
+                renderSolidNetwork(blocked, layout: layout, into: root)
+            }
+        } else {
+            renderSolidNetwork(blocked, layout: layout, into: root)
+        }
 
         if mode == .remastered {
             renderRemasteredLineNetwork(
@@ -103,7 +115,8 @@ final class AquaDotWallRenderer {
         }
     }
 
-    /// Batched solid-wall network. One path per bevel layer replaces the Phase 2
+    /// Remastered solid-wall network and defensive fallback for malformed custom
+    /// Original selector states. One path per bevel layer replaces the Phase 2
     /// design that generated several shape nodes for every X cell.
     private func renderSolidNetwork(
         _ blocked: Set<GridPosition>,
