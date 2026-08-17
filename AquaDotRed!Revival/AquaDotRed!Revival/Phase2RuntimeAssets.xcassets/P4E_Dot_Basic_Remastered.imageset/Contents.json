@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "P4E_Dot_Basic_Remastered.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -49,6 +49,12 @@ struct AquaDotAssetProvider {
     func dotTexture(kind: AquaDotDotKind) -> SKTexture {
         switch kind {
         case .normal:
+            if mode == .remastered {
+                return AquaDotTextureCache.texture(
+                    named: "P4E_Dot_Basic_Remastered",
+                    filtering: .linear
+                )
+            }
             return legacyTexture(original: "OG_Basic_Dot", remastered: "OG_Basic_Dot")
         case .candy:
             return modeTexture(base: "P2_Dot_Candy")
