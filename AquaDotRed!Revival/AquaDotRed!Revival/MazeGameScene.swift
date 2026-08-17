@@ -200,11 +200,29 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
 
         do {
             let maze = try AquaDotLevelLoader().load(record: record)
+
+            // The original Skill getter reads the difficulty assigned to the
+            // already-selected current level. Phase 3C's selector state contains
+            // exactly the selected-level count and mode needed by that normal path.
+            let skillBaseDifficulty: Double
+            if let selector = campaignSelector {
+                skillBaseDifficulty = AquaDotCampaignSelector.baseDifficulty(
+                    forSelectedLevelCount: max(0, selector.state.levelsSelected - 1),
+                    mode: selector.state.difficultyMode
+                )
+            } else {
+                skillBaseDifficulty = AquaDotCampaignSelector.baseDifficulty(
+                    forSelectedLevelCount: carry.levelsCleared,
+                    mode: .shippedDefault
+                )
+            }
+
             let newSession = AquaDotGameSession(
                 levelRecord: record,
                 maze: maze,
                 graphicsMode: preferences.graphicsMode,
-                carry: carry
+                carry: carry,
+                skillBaseDifficulty: skillBaseDifficulty
             )
             session = newSession
             layout = AquaDotMazeLayout(maze: maze)

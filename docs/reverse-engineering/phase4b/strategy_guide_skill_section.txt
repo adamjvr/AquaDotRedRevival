@@ -1,0 +1,25 @@
+Earning Skill Points
+At the end of each level you will be awarded Skill points based on an assessment of how well
+you played that level. As well, the tween-level music and exclamation will vary depending on
+the Skill points earned.
+The calculation for skill points is based on a number of factors. The following increase the skill
+points awarded:
+• Difficulty of the level
+• Leaving Munch dots uneaten (the more the better)
+• Leaving Yuk dots uneaten at end of level
+• Always eating at least one bug with each Munch dot
+• Special power left at end of level
+• Not activating a Yummy power
+• Eating all goodie dots
+• Not eating any goodie dots (actually give more than eating all of them)
+• Eating Yummy, Bonus and Multiplier dots later in their life cycle
+• Eating Yuk dots earlier
+And these decrease skill points:
+• aquadot!red taking damage
+• aquadot!red dying
+Of course, not all of these factors are given equal weight. As well, some of them are of the all-or-
+nothing variety, such as "not activating a Yummy power", whereas most of them have a range of
+values. For instance, leaving one Munch dot at the end of the level doesn't increase your skill
+much, but leaving all of them increases it greatly.
+Tip: The best way to earn Skill points is to avoid taking damage and barring that, not letting
+aqauadot!red die at all. The next best way is to avoid eating Munch dots.

@@ -57,7 +57,8 @@ final class AquaDotGameSession {
         levelRecord: AquaDotLevelRecord,
         maze: AquaDotMaze,
         graphicsMode: AquaDotGraphicsMode = .remastered,
-        carry: AquaDotRunCarry = .fresh
+        carry: AquaDotRunCarry = .fresh,
+        skillBaseDifficulty: Double = 0.30
     ) {
         self.levelRecord = levelRecord
         self.maze = maze
@@ -69,7 +70,8 @@ final class AquaDotGameSession {
             initialBonus: carry.bonus,
             initialMultiplier: carry.multiplier,
             initialLives: carry.lives,
-            initialLevelsCleared: carry.levelsCleared
+            initialLevelsCleared: carry.levelsCleared,
+            skillBaseDifficulty: skillBaseDifficulty
         )
         self.graphicsMode = graphicsMode
 

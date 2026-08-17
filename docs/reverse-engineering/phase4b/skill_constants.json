@@ -1,0 +1,20 @@
+{
+  "skill_function": "0x5f3c2-0x5f824",
+  "quality_thresholds": [500, 1250, 2500, 3500],
+  "munch_full_clear_bonus": {"1": 5, "2": 10, "3": 30, "4": 100},
+  "no_bug_eaten_with_munch": 10,
+  "every_consumed_munch_ate_bug": 20,
+  "no_yummy_power_activated": 20,
+  "special_power_scale": 50,
+  "no_yummy_eaten": 50,
+  "no_yummy_missed": 15,
+  "unsemanticized_legacy_flag": 15,
+  "no_yuk_spawned": 5,
+  "one_yuk_remaining": 40,
+  "multiple_yuk_remaining": 100,
+  "no_yuk_eaten": 10,
+  "no_yuk_expired": 20,
+  "global_scale": 10,
+  "death_factors": {"0": 1.0, "1": 0.8, "2": 0.5, "3+": 0.2},
+  "final_operation": "multiply by levelDifficulty + 1, classify raw float, floorf"
+}

@@ -110,6 +110,27 @@ struct AquaDotDotSystem: Sendable {
         state.score += goodie.kind.scoreValue
         events.append(.goodieEaten(kind: goodie.kind, position: position))
 
+        // Original Skill helper 0x5ca18 samples normalized lifecycle age for
+        // Yummy, Bonus, and Multiplier meals. Yuk has separate early/late flags.
+        let timingFraction: Double = goodie.lifetime > 0
+            ? max(0.0, min(1.0, goodie.age / goodie.lifetime))
+            : 0
+        switch goodie.kind {
+        case .yummy:
+            state.levelStats.activeYummyDots = max(0, state.levelStats.activeYummyDots - 1)
+            state.levelStats.goodieTimingSkillSum = Float(
+                Double(state.levelStats.goodieTimingSkillSum) + timingFraction
+            )
+            state.levelStats.goodieTimingSkillSamples += 1
+        case .yuk:
+            state.levelStats.activeYukDots = max(0, state.levelStats.activeYukDots - 1)
+        case .bonus, .multiplier:
+            state.levelStats.goodieTimingSkillSum = Float(
+                Double(state.levelStats.goodieTimingSkillSum) + timingFraction
+            )
+            state.levelStats.goodieTimingSkillSamples += 1
+        }
+
         switch goodie.kind {
         case .yummy:
             // Guide + cureDot disassembly: when the parent is eaten, transformed
@@ -187,7 +208,13 @@ struct AquaDotDotSystem: Sendable {
         state.availableYummyPower = nil
         if let goodie = state.goodie {
             // A death removes the parent goodie without collecting it.
-            expireGoodie(goodie, state: &state, random: &random, events: &events)
+            expireGoodie(
+                goodie,
+                countsAsSkillMiss: false,
+                state: &state,
+                random: &random,
+                events: &events
+            )
             state.goodie = nil
         }
     }
@@ -246,12 +273,15 @@ struct AquaDotDotSystem: Sendable {
 
     private mutating func expireGoodie(
         _ goodie: AquaDotGoodieState,
+        countsAsSkillMiss: Bool = true,
         state: inout AquaDotGameState,
         random: inout AquaDotSeededRandom,
         events: inout [AquaDotGameEvent]
     ) {
         switch goodie.kind {
         case .yummy:
+            state.levelStats.activeYummyDots = max(0, state.levelStats.activeYummyDots - 1)
+            if countsAsSkillMiss { state.levelStats.yummyExpired += 1 }
             scheduleTransitions(
                 from: .candy,
                 to: .normal,
@@ -261,6 +291,8 @@ struct AquaDotDotSystem: Sendable {
                 random: &random
             )
         case .yuk:
+            state.levelStats.activeYukDots = max(0, state.levelStats.activeYukDots - 1)
+            if countsAsSkillMiss { state.levelStats.yukExpired += 1 }
             // Shipped guide: an uneaten Yuk leaves Petrified dots behind.
             scheduleTransitions(
                 from: .crusty,

@@ -78,7 +78,8 @@ final class AquaDotGameSimulation {
         initialBonus: Int = 0,
         initialMultiplier: Int = 1,
         initialLives: Int = 3,
-        initialLevelsCleared: Int = 0
+        initialLevelsCleared: Int = 0,
+        skillBaseDifficulty: Double = 0.30
     ) {
         self.topology = topology
         self.tuning = tuning
@@ -150,7 +151,8 @@ final class AquaDotGameSimulation {
             levelsCleared: max(0, initialLevelsCleared),
             levelStats: AquaDotLevelStats(
                 initialRequiredDots: topology.dots.count,
-                initialMunchDots: topology.munchDots.count
+                initialMunchDots: topology.munchDots.count,
+                skillBaseDifficulty: Float(skillBaseDifficulty)
             ),
             availableYummyPower: nil,
             activeSpecialPower: nil,
@@ -421,6 +423,11 @@ final class AquaDotGameSimulation {
             state.munchStartedWithFullEnergy = state.energy >= 0.999
             state.munchTimeRemaining = tuning.munchDuration
             state.bugsEatenThisMunch = 0
+            // Original 0x94a0c snapshots the number of bugs eligible for this
+            // Munch window; 0x94a10 counts the ones eaten before the window ends.
+            state.levelStats.currentMunchEligibleBugs = state.bugs.reduce(into: 0) { count, bug in
+                if bug.mode != .returningHome { count += 1 }
+            }
             for index in state.bugs.indices where state.bugs[index].mode != .returningHome {
                 state.bugs[index].mode = .frightened
             }
@@ -439,6 +446,7 @@ final class AquaDotGameSimulation {
             )
             if state.goodie == nil {
                 state.levelStats.goodiesEaten += 1
+                if collectedKind == .yummy { state.levelStats.yummyEaten += 1 }
                 if collectedKind == .yuk { state.levelStats.yukEaten += 1 }
             }
         }
@@ -841,19 +849,45 @@ final class AquaDotGameSimulation {
         }
 
         if touchingDangerousBug {
+            if !state.levelStats.damageMeasurementActive {
+                // `skill_startDamageMeasurment`: dangerous contact clears the
+                // no-damage flag and snapshots the Energy meter once per window.
+                state.levelStats.damageContactOccurred = true
+                state.levelStats.damageMeasurementActive = true
+                state.levelStats.damageMeasurementStartEnergy = Float(state.energy)
+            }
+
             let moving = state.player.nextNode != nil
             var rate = moving ? tuning.movingBugDamagePerSecond : tuning.stoppedBugDamagePerSecond
             if case .yuk(.tasty)? = state.activeSpecialPower { rate *= 4.0 }
             if case .yummy(.energetic)? = state.activeSpecialPower { rate *= 0.45 }
-            let energyBeforeDamage = state.energy
             state.energy = max(0, state.energy - rate * deltaTime)
-            state.levelStats.damageTaken += max(0, energyBeforeDamage - state.energy)
             if damageEventCooldown <= 0 {
                 pendingEvents.append(.playerDamaged)
                 damageEventCooldown = 0.22
             }
             if state.energy <= 0 { loseLife() }
+        } else {
+            finalizeDamageSkillMeasurement()
         }
+    }
+
+    /// Mirror the original damage-stop helper: only net Energy loss across a
+    /// contact window is accumulated, and the end-of-window Energy updates the
+    /// retained minimum. Death and level completion explicitly call this before
+    /// resetting/consuming their state.
+    private func finalizeDamageSkillMeasurement() {
+        guard state.levelStats.damageMeasurementActive else { return }
+        let start = state.levelStats.damageMeasurementStartEnergy
+        let current = Float(state.energy)
+        if current <= start {
+            state.levelStats.damageTaken += Double(start - current)
+            state.levelStats.minimumEnergyAfterDamage = min(
+                state.levelStats.minimumEnergyAfterDamage,
+                current
+            )
+        }
+        state.levelStats.damageMeasurementActive = false
     }
 
     private func eatBug(at index: Int) {
@@ -875,6 +909,13 @@ final class AquaDotGameSimulation {
         addScore(points)
         state.bugsEatenThisMunch += 1
         state.levelStats.bugsEaten += 1
+        if state.levelStats.currentMunchEligibleBugs > 0,
+           state.bugsEatenThisMunch >= state.levelStats.currentMunchEligibleBugs {
+            state.levelStats.fullBugClearsDuringMunch += 1
+            // Prevent a second increment if any malformed event reaches this
+            // Munch after all originally eligible bugs have already been eaten.
+            state.levelStats.currentMunchEligibleBugs = 0
+        }
         state.energy = min(1, state.energy + 0.25)
         state.bugs[index].mode = .returningHome
         state.bugs[index].nextNode = nil
@@ -896,26 +937,38 @@ final class AquaDotGameSimulation {
         for event in events {
             if case let .goodieSpawned(kind, _) = event {
                 state.levelStats.goodiesSpawned += 1
-                if kind == .yuk { state.levelStats.yukSpawned += 1 }
+                switch kind {
+                case .yummy:
+                    state.levelStats.activeYummyDots += 1
+                case .yuk:
+                    state.levelStats.yukSpawned += 1
+                    state.levelStats.activeYukDots += 1
+                case .bonus, .multiplier:
+                    break
+                }
             }
         }
     }
 
     private func finishMunchSkillWindow() {
-        guard state.munchTimeRemaining > 0 || state.bugsEatenThisMunch > 0 else { return }
+        guard state.munchTimeRemaining > 0
+                || state.bugsEatenThisMunch > 0
+                || state.levelStats.currentMunchEligibleBugs > 0 else { return }
         if state.bugsEatenThisMunch > 0 {
             state.levelStats.munchesWithAtLeastOneBug += 1
         }
+        state.levelStats.currentMunchEligibleBugs = 0
     }
 
     private func completeLevel() {
         guard !state.levelCompleted else { return }
 
+        finalizeDamageSkillMeasurement()
         if state.munchTimeRemaining > 0 { finishMunchSkillWindow() }
 
-        // The guide is explicit: (Bonus + Skill) × Multiplier is added to the
-        // score at the end of each level. Exact Skill weights remain isolated in
-        // AquaDotSkillScoring until stronger binary evidence is recovered.
+        // Phase 4B recovers the original Skill arithmetic and quality thresholds.
+        // The surrounding relationship was already guide-proven:
+        // (Bonus + Skill) × Multiplier.
         let skill = AquaDotSkillScoring.calculate(state: state)
         let scoreBefore = state.score
         let levelAward = (state.bonus + skill.points) * max(1, state.multiplier)
@@ -955,6 +1008,9 @@ final class AquaDotGameSimulation {
     }
 
     private func loseLife() {
+        // Original death path increments the death counter and explicitly closes
+        // an active damage measurement before the Energy meter is reset.
+        finalizeDamageSkillMeasurement()
         if state.munchTimeRemaining > 0 { finishMunchSkillWindow() }
         state.lives = max(0, state.lives - 1)
         state.levelStats.livesLost += 1
