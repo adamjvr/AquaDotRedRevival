@@ -90,25 +90,21 @@ final class AquaDotGameSimulation {
             initialNext = starts[1]
         }
 
-        // Preserve Phase 2's four-basic roster at the start of a new campaign,
-        // then progressively expose the guide-confirmed advanced personalities.
-        // The exact historical campaign availability table remains unresolved,
-        // so this unlock schedule is intentionally labeled reconstruction.
-        let roster = Self.phase3BBugRoster(
-            levelsCleared: initialLevelsCleared,
-            enemyCount: topology.enemyStarts.count,
+        // Phase 4G recovered original bug roster. Enemy colors 0...7 map to
+        // eight real strategies; Neon is a sprite disguise applied *after* the
+        // underlying color/personality is chosen. Reaper/color 8 remains an
+        // explicit later target because its special contact/movement path is not
+        // yet restored and must not be silently treated as an ordinary bug.
+        let spawnPlan = AquaDotRecoveredBugRoster.makeSpawnPlan(
+            difficulty: skillBaseDifficulty,
             random: &setupRandom
         )
+        precondition(spawnPlan.count == AquaDotRecoveredBugRoster.enemyCount)
         let bugs = topology.enemyStarts.enumerated().map { index, start in
-            let personality = roster[index % max(1, roster.count)]
-            let emulated: AquaDotBugPersonality? = personality == .neon
-                ? AquaDotBugPersonality.neonEmulationCandidates[
-                    setupRandom.int(upperBound: AquaDotBugPersonality.neonEmulationCandidates.count)
-                ]
-                : nil
+            let spawn = spawnPlan[index % spawnPlan.count]
             return AquaDotBugState(
                 id: start.id,
-                personality: personality,
+                personality: spawn.personality,
                 homeNode: start.position,
                 currentNode: start.position,
                 nextNode: nil,
@@ -116,7 +112,7 @@ final class AquaDotGameSimulation {
                 movementDirection: nil,
                 mode: .hunting,
                 recoveryDelay: 0,
-                emulatedPersonality: emulated
+                isNeonAppearance: spawn.isNeonAppearance
             )
         }
 
@@ -508,7 +504,7 @@ final class AquaDotGameSimulation {
             let bug = state.bugs[index]
             var speed = tuning.bugCellsPerSecond
             switch bug.effectivePersonality {
-            case .hunter, .blocker:
+            case .hunter, .blocker, .loneWolf:
                 break
             case .sneaker:
                 // Guide-backed behavior; exact basic-personality speed constants
@@ -636,7 +632,11 @@ final class AquaDotGameSimulation {
 
         let target: GridPosition
         switch bug.effectivePersonality {
-        case .hunter:
+        case .hunter, .loneWolf:
+            // The shipped guide identifies Lone Wolf as a distinct strategy but
+            // gives the same top-level contract as Hunter: take the shortest
+            // route to AquaDot. The cached graph implements that recovered target
+            // without claiming unrecovered lower-level turn nuance is bit-exact.
             target = player
         case .blocker:
             target = pathfinding.projectedNode(

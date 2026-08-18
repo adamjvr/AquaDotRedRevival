@@ -324,7 +324,12 @@ final class MazeGameScene: SKScene, AquaDotInputSink {
         playerNode = player
 
         for bug in session.state.bugs {
-            let node = SKSpriteNode(texture: assets.bugTexture(personality: bug.personality))
+            let node = SKSpriteNode(
+                texture: assets.bugTexture(
+                    personality: bug.personality,
+                    neonAppearance: bug.isNeonAppearance
+                )
+            )
             node.size = CGSize(width: 31, height: 31)
             node.position = layout.point(for: bug.renderPosition())
             node.zPosition = 35
