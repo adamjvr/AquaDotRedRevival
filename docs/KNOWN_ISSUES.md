@@ -1,33 +1,40 @@
-# Known Issues
+# Known Issues / Explicit Reconstruction Boundaries
 
-## Current Phase 3 fidelity targets
+## Phase 4 authenticity closure
 
-### Skill weights are reconstructed, not yet exact
-The strategy guide explicitly provides the end-level formula and the factors that raise/lower Skill, but not every original numeric weight. `AquaDotSkillScoring` keeps the provisional weights isolated until binary evidence can replace them.
+### Absolute movement units are still translated
+The executable exposes exact relative enemy setup and warp factors, but the historical movement unit has not been proven one-for-one against Revival's fixed-step cells/second coordinate system. Phase 4 therefore restores the exact **ratios and strategy-specific warp factors** without falsely labeling the absolute SpriteKit speed as recovered.
 
-### Original level-selection sequencing
-The original binary contains weighted/random level-selection machinery. Some tables/constants are recovered, but the full progression contract is not yet proven. The current deterministic Ewe-based progression remains useful for regression testing and is not labeled as the final historical sequence.
+### Reaper contact is a modern fixed-step translation
+The executable has a dedicated Reaper-danger path and the shipped guide describes Reaper contact as almost immediately lethal. Revival maps the recovered fast contact transition onto the Energy-drain model; the legacy status-animation unit and modern Energy/second unit are not claimed identical.
 
-### Exact solid-wall sub-piece selection
-The four `9w/10w` source atlas families and `_drawMazePiece` type/index architecture are recovered, but the complete call-site selection logic is not yet reduced to a trustworthy modern table.
+### Infection/cure timing envelope is not fully binary-matched
+The important spatial rule is now recovered: infection/cure records propagate to immediate orthogonal dot neighbors rather than through maze shortest paths or wraps. Goodie lifecycle timing still supplies a modern envelope around that recovered propagation topology until the old per-record timing calculation is completely mapped.
 
-### Four bug types remain missing
-Hunter, Blocker, Sneaker and Hound Dog are live. Protector, Mantis, Hermit and Neon remain Phase 3 reconstruction work.
+### RNG bitstream identity
+Campaign/bug/goodie control-flow distributions preserve recovered selector structure where known, but Revival uses deterministic project-local RNG streams. It does not claim libc `rand()` seed or bitstream identity with the original executable.
 
-### Infection / sprout / cure systems
-Recovered `MazeSprouts.cc` / `MazeDots.cc` evidence proves these systems existed, but they are not yet fully implemented in the revival.
+### Remaining AI/presentation adapters
+A few advanced-AI helper choosers and historical presentation edge cases are still translated through Revival's graph/SwiftUI/SpriteKit abstractions. These are documented in the relevant reverse-engineering notes instead of being labeled exact.
 
 ### High-score name entry
-Scores now persist and the original Today’s Best / Best Scores Ever headings are live. Until the original type-your-name flow is reconstructed, completed runs are recorded as `anonymous`.
+Persistent Today’s Best / Best Scores Ever tables work, but the original interactive type-your-name flow remains a Phase 4/5 presentation target; runs may still be recorded as `anonymous`.
 
-## Fixed observed gameplay failures
+### iPadOS regression depth
+The runtime architecture is shared with macOS, but broader physical-device input/layout testing remains Phase 5 work.
 
-- Phase 2 progressive CoreAudio/render slowdown: fixed by Phase 2.1 architecture.
-- Visible bug overlap without damage: fixed in Phase 2.1.1.
-- Clearing a maze without progressing: fixed in Phase 2.1.1.
-- Ewe (4) same-bottom wrap ping-pong loop: fixed structurally in Phase 2.1.2.
-- Zero-life infinite respawn: fixed in Phase 3.
-- Bonus leaking into later levels instead of being consumed at end-of-level: fixed in Phase 3.
+## Fixed / superseded historical issues
+
+- Phase 2 progressive CoreAudio/render slowdown — fixed by pooled audio + incremental rendering.
+- Visible bug overlap without damage — fixed in Phase 2.1.1.
+- Clearing a maze without progressing — fixed in Phase 2.1.1.
+- Same-side wrap ping-pong — fixed structurally in Phase 2.1.2.
+- Zero-life infinite respawn — fixed in Phase 3.
+- Bonus leaking across levels — fixed in Phase 3.
+- Skill scoring described as provisional — superseded by Phase 4B executable recovery.
+- “Only four bugs implemented” — superseded by Phase 4F/4G and the Phase 4 Reaper closure.
+- Neon treated as its own AI personality — superseded by the recovered appearance-wrapper architecture.
+- Generic guessed bug warp delay — superseded by recovered shared warp-style multipliers in Phase 4 closure.
 
 ## Reporting a regression
 Include maze name, graphics mode, movement/action leading into the failure, whether pause/menu remains responsive, backtick FPS/node/audio values, terminal/Xcode log, and a screenshot/capture when visual state matters.

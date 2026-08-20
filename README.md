@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <strong>Current milestone:</strong> Phase 4H — main-menu AquaDot remaster<br>
-  Preservation-first reconstruction with an optional high-resolution Remastered presentation.
+  <strong>Current milestone:</strong> Phase 4 — authenticity closure<br>
+  Reaper restored, shared warp behavior recovered, infection/cure propagation corrected, and Phase 4 documentation consolidated.
 </p>
 
 ---
@@ -64,8 +64,10 @@ Phase 1 established the recovered-data runtime. Phase 2 reconstructed the major 
 - Level completion uses the documented **(Bonus + Skill) × Multiplier** structure and a recovered-art tween-level summary.
 - Game Over, auto-save/resume, persistent high scores and campaign progression are live.
 - The recovered eight-strategy ordinary bug roster is represented: Hunter, Blocker, Sneaker, Hound Dog, Lone Wolf, Hermit, Protector and Mantis.
-- Advanced Protector, Mantis and Hermit behavior now uses binary-recovered state/timing logic where the evidence is strong enough.
-- **Neon is modeled as an appearance/disguise applied over a real underlying strategy**, matching the recovered executable architecture rather than acting as a ninth personality.
+- Advanced Protector, Mantis and Hermit behavior uses binary-recovered state/timing logic where the evidence is strong enough.
+- **Reaper is restored as the original special Night enemy path**, including the full-version 50/50 Hunter-vs-random split, Reaper-only appearance, much slower legacy base-velocity ratio, lethal-contact timing translation, and recovered 1.5x warp slingshot behavior.
+- **Neon is modeled as an appearance/disguise applied over a real underlying strategy**, matching the recovered executable architecture rather than acting as a ninth personality; Reapers never receive Neon substitution.
+- Infection and cure propagation now follow the executable's cardinal per-dot wave topology instead of spreading through generic maze shortest paths.
 - Original and Remastered visual modes share identical gameplay coordinates/state.
 - Original mode preserves/reconstructs the historical presentation path; Remastered mode now includes high-resolution AquaDot, bug, collectible, sprout and menu-hero art.
 - The Phase 4H opening-screen AquaDot uses the recovered large spot/pad visual language while retaining the existing menu layout, opacity and slow rotation.
@@ -76,7 +78,7 @@ Phase 1 established the recovered-data runtime. Phase 2 reconstructed the major 
 
 ### Known reconstruction boundaries
 
-The project intentionally keeps uncertainty visible instead of silently turning guesses into "original" behavior. Remaining targets include the Reaper's special gameplay semantics, some shared/base bug-locomotion and strategy-dispatch details, a few unresolved timing/randomness constants, exact equivalence for every historical presentation edge case, and broader iPadOS regression testing.
+The project intentionally keeps uncertainty visible instead of silently turning guesses into "original" behavior. The remaining boundaries are narrower: absolute legacy velocity units are still translated onto Revival's cells/second scale, infection timing retains a modern lifecycle envelope around the now-recovered propagation topology, the deterministic Revival RNG is not libc-rand bitstream-identical, a few presentation/advanced-AI sub-choosers remain graph-level adapters, and iPadOS still needs broader regression testing.
 
 Reconstructed or newly remastered assets are documented as such. A high-resolution recreation based on recovered component artwork is **not** labeled as a recovered historical master.
 
@@ -226,8 +228,10 @@ Patch/install scripts should remain usable from standard **Bash on macOS and Lin
 | Phase 4E | ✅ | High-resolution collectibles/playfield remaster |
 | Phase 4F | ✅ | Advanced bug-AI recovery |
 | Phase 4G | ✅ | Original bug roster + Neon architecture recovery |
-| **Phase 4H** | **🔥 Current** | **Spotted high-resolution main-menu AquaDot remaster** |
-| Next | 🔧 | Continue unresolved binary-backed gameplay authenticity before release polish |
+| Phase 4H | ✅ | Spotted high-resolution main-menu AquaDot remaster |
+| **Phase 4 closure** | **🔥 Current** | **Reaper + shared locomotion + infection/cure topology + consolidated authenticity documentation** |
+| Phase 5 | 🔧 Next | Release/platform hardening, macOS+iPadOS regression, packaging |
+| Phase 6 | 🧭 Planned | Native editor revival |
 
 ---
 

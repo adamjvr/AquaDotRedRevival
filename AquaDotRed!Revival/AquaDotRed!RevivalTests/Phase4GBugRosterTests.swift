@@ -24,18 +24,12 @@ struct Phase4GBugRosterTests {
     @Test func recoveredFullVersionAvailabilityThresholdsAreLocked() {
         #expect(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .indigo, difficulty: 0.09) == 0)
         #expect(abs(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .indigo, difficulty: 0.10) - 0.40) < 0.000001)
-
         #expect(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .green, difficulty: 0.29) == 0)
         #expect(abs(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .green, difficulty: 0.30) - 0.45) < 0.000001)
-
         #expect(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .magenta, difficulty: 0.49) == 0)
         #expect(abs(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .magenta, difficulty: 0.50) - 0.75) < 0.000001)
-
         #expect(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .cyan, difficulty: 0.69) == 0)
         #expect(abs(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .cyan, difficulty: 0.70) - 0.70) < 0.000001)
-
-        // Reaper availability is recovered and recorded even though Phase 4G does
-        // not generate Reaper until its special movement/contact behavior exists.
         #expect(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .nightReaper, difficulty: 0.69) == 0)
         #expect(abs(AquaDotRecoveredBugRoster.fullVersionAvailabilityProbability(color: .nightReaper, difficulty: 0.70) - 0.70) < 0.000001)
     }
@@ -45,7 +39,6 @@ struct Phase4GBugRosterTests {
         #expect(AquaDotRecoveredBugRoster.compositionUpperBound(difficulty: 0.5) == 13)
         #expect(AquaDotRecoveredBugRoster.compositionUpperBound(difficulty: 1.0) == 16)
         #expect(AquaDotRecoveredBugRoster.compositionUpperBound(difficulty: 9.0) == 16)
-
         #expect(AquaDotRecoveredBugRoster.multiplicityPattern(compositionDraw: 8) == [0, 1, 2, 3])
         #expect(AquaDotRecoveredBugRoster.multiplicityPattern(compositionDraw: 9) == [0, 0, 1, 2])
         #expect(AquaDotRecoveredBugRoster.multiplicityPattern(compositionDraw: 11) == [0, 0, 1, 2])
@@ -56,35 +49,39 @@ struct Phase4GBugRosterTests {
         #expect(AquaDotRecoveredBugRoster.multiplicityPattern(compositionDraw: 16) == [0, 0, 0, 0])
     }
 
-    @Test func generatedPlansUseRealStrategiesAndNeverEncodeNeonAsPersonality() {
+    @Test func generatedPlansAlwaysContainFourRealUnderlyingStrategies() {
         for difficulty in [0.0, 0.3, 0.5, 0.7, 1.0, 2.0] {
-            for seed in 1...64 {
+            for seed in 1...128 {
                 var random = AquaDotSeededRandom(seed: UInt64(seed))
-                let plan = AquaDotRecoveredBugRoster.makeSpawnPlan(
-                    difficulty: difficulty,
-                    random: &random
-                )
+                let plan = AquaDotRecoveredBugRoster.makeSpawnPlan(difficulty: difficulty, random: &random)
                 #expect(plan.count == 4)
                 #expect(!plan.contains { $0.personality == .neon })
-                #expect(!plan.contains { $0.sourceColor == .nightReaper })
-                #expect(plan.allSatisfy { $0.sourceColor.personality == $0.personality })
+                #expect(plan.allSatisfy { spawn in
+                    spawn.sourceColor == .nightReaper || spawn.sourceColor.personality == spawn.personality
+                })
+                #expect(plan.allSatisfy { !$0.isNeonAppearance || $0.sourceColor != .nightReaper })
             }
         }
     }
 
-    @Test func neonFlagNeverChangesUnderlyingStrategy() {
-        let normal = AquaDotRecoveredBugSpawn(
-            sourceColor: .indigo,
-            personality: .loneWolf,
-            isNeonAppearance: false
-        )
-        let disguised = AquaDotRecoveredBugSpawn(
-            sourceColor: .indigo,
-            personality: .loneWolf,
-            isNeonAppearance: true
-        )
-        #expect(normal.personality == disguised.personality)
-        #expect(normal.sourceColor == disguised.sourceColor)
-        #expect(normal.isNeonAppearance != disguised.isNeonAppearance)
+    @Test func fullVersionReaperPathActuallyAppearsAtHighDifficulty() {
+        var sawReaper = false
+        var sawHunterReaper = false
+        var sawRandomReaper = false
+        for seed in 1...4096 {
+            var random = AquaDotSeededRandom(seed: UInt64(seed))
+            let plan = AquaDotRecoveredBugRoster.makeSpawnPlan(difficulty: 1.0, random: &random)
+            for spawn in plan where spawn.sourceColor == .nightReaper {
+                sawReaper = true
+                #expect(!spawn.isNeonAppearance)
+                #expect(spawn.personality == .hunter)
+                if spawn.reaperBehavior == .hunter { sawHunterReaper = true }
+                if spawn.reaperBehavior == .random { sawRandomReaper = true }
+            }
+            if sawHunterReaper && sawRandomReaper { break }
+        }
+        #expect(sawReaper)
+        #expect(sawHunterReaper)
+        #expect(sawRandomReaper)
     }
 }

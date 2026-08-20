@@ -33,6 +33,9 @@ final class AquaDotGameSimulation {
         var bugCollisionRadiusCells: Double = 0.92
     }
 
+    // Phase 4 authenticity closure: Reaper + shared warp locomotion + recovered
+    // infection/cure propagation topology. See docs/reverse-engineering/phase4-closure.
+
     let topology: AquaDotMazeTopology
     let tuning: Tuning
     private(set) var state: AquaDotGameState
@@ -112,7 +115,9 @@ final class AquaDotGameSimulation {
                 movementDirection: nil,
                 mode: .hunting,
                 recoveryDelay: 0,
-                isNeonAppearance: spawn.isNeonAppearance
+                isNeonAppearance: spawn.isNeonAppearance,
+                reaperBehavior: spawn.reaperBehavior,
+                segmentSpeedMultiplier: 1.0
             )
         }
 
@@ -503,6 +508,12 @@ final class AquaDotGameSimulation {
 
             let bug = state.bugs[index]
             var speed = tuning.bugCellsPerSecond
+            if bug.isReaper {
+                // Phase 4 authenticity closure: setupEnemy initializes Reapers
+                // with legacy velocity 10000 versus 50000 for ordinary bugs.
+                // The ratio is exact; absolute cells/second remains translation.
+                speed *= AquaDotRecoveredEnemyLocomotion.reaperBaseVelocityRatio
+            }
             switch bug.effectivePersonality {
             case .hunter, .blocker, .loneWolf:
                 break
@@ -529,25 +540,33 @@ final class AquaDotGameSimulation {
     }
 
     private func advanceBug(at index: Int, distance: Double) {
-        var distanceToTravel = distance
+        // Phase 4 authenticity closure: consume movement in *base* cell units,
+        // then apply the current segment's recovered warp velocity multiplier.
+        // This preserves ordinary fixed-step movement while allowing a Reaper's
+        // 1.5x slingshot and the 0.5x/0.25x ordinary warp styles to act as speeds
+        // instead of the old guessed post-teleport pause.
+        var baseDistanceToTravel = distance
         var safety = 0
-        while distanceToTravel > 0, safety < 24 {
+        while baseDistanceToTravel > 0, safety < 24 {
             safety += 1
             if state.bugs[index].nextNode == nil {
                 guard beginNextBugSegment(at: index) else { break }
                 if state.bugs[index].nextNode == nil { continue }
             }
 
+            let multiplier = max(0.0001, state.bugs[index].segmentSpeedMultiplier)
             let remaining = 1 - state.bugs[index].segmentProgress
-            if distanceToTravel < remaining {
-                state.bugs[index].segmentProgress += distanceToTravel
-                distanceToTravel = 0
+            let scaledDistance = baseDistanceToTravel * multiplier
+            if scaledDistance < remaining {
+                state.bugs[index].segmentProgress += scaledDistance
+                baseDistanceToTravel = 0
             } else {
-                distanceToTravel -= remaining
+                baseDistanceToTravel -= remaining / multiplier
                 guard let destination = state.bugs[index].nextNode else { break }
                 state.bugs[index].currentNode = destination
                 state.bugs[index].nextNode = nil
                 state.bugs[index].segmentProgress = 0
+                state.bugs[index].segmentSpeedMultiplier = 1.0
 
                 if state.bugs[index].mode == .returningHome, destination == state.bugs[index].homeNode {
                     state.bugs[index].mode = state.isMunchActive ? .frightened : .hunting
@@ -571,6 +590,7 @@ final class AquaDotGameSimulation {
         case .corridor:
             state.bugs[index].nextNode = edge.destination
             state.bugs[index].segmentProgress = 0
+            state.bugs[index].segmentSpeedMultiplier = 1.0
         case .wrap:
             state.bugs[index].currentNode = edge.destination
             state.bugs[index].nextNode = nil
@@ -588,14 +608,14 @@ final class AquaDotGameSimulation {
                 state.bugs[index].movementDirection = nil
             }
 
-            // Guide and binary architecture prove generic warp slowdown. Hermit is
-            // explicitly "very slow" in warps, but Phase 4F did not yet recover
-            // the exact Hermit warp-delay scalar, so this one compatibility value
-            // intentionally remains isolated in Tuning.
-            let warpDelay = state.bugs[index].effectivePersonality == .hermit
-                ? tuning.hermitWarpSlowdown
-                : tuning.bugWarpSlowdown
-            state.bugs[index].recoveryDelay = max(state.bugs[index].recoveryDelay, warpDelay)
+            // `setEnemyV` stores exact per-strategy warpStyle velocity factors.
+            // Reaper uses 1.5 (the guide's "slingshot"), Hunter/Blocker/Sneaker/
+            // Lone Wolf use .5, and Hound Dog/Protector/Mantis/Hermit use .25.
+            state.bugs[index].segmentSpeedMultiplier =
+                AquaDotRecoveredEnemyLocomotion.warpVelocityMultiplier(
+                    personality: state.bugs[index].effectivePersonality,
+                    isReaper: state.bugs[index].isReaper
+                )
         }
         return true
     }
@@ -628,6 +648,13 @@ final class AquaDotGameSimulation {
 
         if invisible {
             return randomBugDirection(from: bug.currentNode, avoiding: reverse)
+        }
+
+        if bug.reaperBehavior == .random {
+            return recoveredRandomReaperDirection(
+                from: bug.currentNode,
+                oppositeDirection: reverse
+            )
         }
 
         let target: GridPosition
@@ -1125,6 +1152,18 @@ final class AquaDotGameSimulation {
         )
     }
 
+    private func recoveredRandomReaperDirection(
+        from position: GridPosition,
+        oppositeDirection: AquaDotDirection?
+    ) -> AquaDotDirection? {
+        let valid = Set(topology.edges(from: position).map(\.direction))
+        return AquaDotRecoveredEnemyLocomotion.randomReaperDirection(
+            startIndex: random.int(upperBound: 4),
+            validDirections: valid,
+            oppositeDirection: oppositeDirection
+        )
+    }
+
     private func randomBugDirection(
         from position: GridPosition,
         avoiding reverse: AquaDotDirection?
@@ -1157,6 +1196,7 @@ final class AquaDotGameSimulation {
     private func resolveBugCollisions(deltaTime: Double) {
         let playerPosition = state.player.renderPosition()
         var touchingDangerousBug = false
+        var touchingReaper = false
 
         for index in state.bugs.indices {
             let bug = state.bugs[index]
@@ -1173,6 +1213,7 @@ final class AquaDotGameSimulation {
                 continue
             } else {
                 touchingDangerousBug = true
+                if bug.isReaper { touchingReaper = true }
             }
         }
 
@@ -1187,6 +1228,12 @@ final class AquaDotGameSimulation {
 
             let moving = state.player.nextNode != nil
             var rate = moving ? tuning.movingBugDamagePerSecond : tuning.stoppedBugDamagePerSecond
+            if touchingReaper {
+                // The original Reaper-contact branch shortens the status-bar loss
+                // transition to 0.15x. Fixed-step translation: same loss envelope
+                // completed 1/0.15 times faster, matching "almost instantly".
+                rate *= AquaDotRecoveredEnemyLocomotion.reaperDamageRateMultiplier
+            }
             if case .yuk(.tasty)? = state.activeSpecialPower { rate *= 4.0 }
             if case .yummy(.energetic)? = state.activeSpecialPower { rate *= 0.45 }
             state.energy = max(0, state.energy - rate * deltaTime)

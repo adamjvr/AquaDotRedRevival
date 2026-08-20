@@ -35,10 +35,13 @@ struct AquaDotAssetProvider {
     /// `setupEnemy` did. Neon substitutes the sprite only; it does not alter AI.
     func bugTexture(
         personality: AquaDotBugPersonality,
-        neonAppearance: Bool = false
+        neonAppearance: Bool = false,
+        reaperAppearance: Bool = false
     ) -> SKTexture {
         let key: String
-        if neonAppearance {
+        if reaperAppearance {
+            key = "Reaper"
+        } else if neonAppearance {
             key = "Neon"
         } else {
             switch personality {

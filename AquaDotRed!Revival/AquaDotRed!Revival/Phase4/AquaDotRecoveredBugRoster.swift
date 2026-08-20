@@ -5,16 +5,17 @@ import Foundation
 ///
 /// Historical model recovered from `EnemyDraw.cc`:
 /// - colours 0...7 select eight *real* strategy personalities,
-/// - colour 8 is the special Reaper path (deliberately deferred to a later phase),
+/// - colour 8 is the special Night/Reaper path,
 /// - colour 11 / Neon is not a ninth strategy: `setupEnemy` may substitute the
 ///   Neon sprite while preserving the original colour/personality internally.
 ///
 /// The selector below restores the full-version ordinary roster (0...7), exact
 /// colour/personality mapping, difficulty-gated availability tests, the recovered
 /// four-enemy duplicate distribution, and per-enemy Neon disguise probability.
-/// It intentionally excludes colour 8 until Reaper contact/movement behavior is
-/// restored; that boundary is explicit rather than silently giving Reapers normal
-/// bug damage.
+/// Phase 4 authenticity closure additionally restores colour 8: the full-version
+/// 50/50 Hunter-vs-random Reaper split, Reaper-only graphics, and the no-Neon rule.
+/// Absolute legacy velocity units and libc-rand bitstream identity remain explicit
+/// translation boundaries.
 enum AquaDotRecoveredEnemyColor: Int, CaseIterable, Sendable {
     case red = 0
     case blue = 1
@@ -45,6 +46,19 @@ struct AquaDotRecoveredBugSpawn: Equatable, Sendable {
     let sourceColor: AquaDotRecoveredEnemyColor
     let personality: AquaDotBugPersonality
     let isNeonAppearance: Bool
+    let reaperBehavior: AquaDotReaperBehavior?
+
+    init(
+        sourceColor: AquaDotRecoveredEnemyColor,
+        personality: AquaDotBugPersonality,
+        isNeonAppearance: Bool,
+        reaperBehavior: AquaDotReaperBehavior? = nil
+    ) {
+        self.sourceColor = sourceColor
+        self.personality = personality
+        self.isNeonAppearance = isNeonAppearance
+        self.reaperBehavior = reaperBehavior
+    }
 }
 
 enum AquaDotRecoveredBugRoster {
@@ -81,9 +95,6 @@ enum AquaDotRecoveredBugRoster {
         case .cyan:
             return d >= 0.7 ? d : 0
         case .nightReaper:
-            // The executable also gates colour 8 at D >= .7 with probability D.
-            // Phase 4G records that exact fact but does not generate it until the
-            // Reaper-specific movement/contact path is restored.
             return d >= 0.7 ? d : 0
         }
     }
@@ -125,7 +136,7 @@ enum AquaDotRecoveredBugRoster {
         // structure even though it is not libc-rand bit-identical.
         for color in [
             AquaDotRecoveredEnemyColor.indigo,
-            .green, .magenta, .cyan,
+            .green, .magenta, .cyan, .nightReaper,
         ] {
             let probability = fullVersionAvailabilityProbability(color: color, difficulty: difficulty)
             if probability > 0, random.double() <= probability {
@@ -133,9 +144,6 @@ enum AquaDotRecoveredBugRoster {
             }
         }
 
-        // The executable performs the same D>=.7 / p=D availability test for
-        // Night/Reaper here. Phase 4G intentionally leaves that bit false until
-        // Reaper's special movement/contact path is recovered.
 
         let upper = compositionUpperBound(difficulty: difficulty)
         let compositionDraw = 1 + random.int(upperBound: upper)
@@ -160,8 +168,24 @@ enum AquaDotRecoveredBugRoster {
         }
 
         let neonProbability = neonAppearanceProbability(difficulty: difficulty)
-        return colors.compactMap { color in
-            guard let personality = color.personality else { return nil }
+        return colors.map { color in
+            if color == .nightReaper {
+                // Full registered build `setupEnemy`: Reaper chooses strategy 0
+                // (Hunter) with p=.5, otherwise strategy 12 (random). The Reaper
+                // flag is set after strategy selection and Neon substitution is
+                // bypassed entirely for source colour 8.
+                let behavior: AquaDotReaperBehavior = random.double() < 0.5
+                    ? .hunter
+                    : .random
+                return AquaDotRecoveredBugSpawn(
+                    sourceColor: color,
+                    personality: .hunter,
+                    isNeonAppearance: false,
+                    reaperBehavior: behavior
+                )
+            }
+
+            let personality = color.personality ?? .hunter
             let neon = neonProbability > 0 && random.double() <= neonProbability
             return AquaDotRecoveredBugSpawn(
                 sourceColor: color,

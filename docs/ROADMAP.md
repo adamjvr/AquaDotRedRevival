@@ -1,46 +1,38 @@
 # AquaDotRedRevival Roadmap
 
-## Phase 1 — Authentic Core Runtime ✅
-Recovered parser/CRC, topology, wraps, player movement, original corpus, first assets, native Mac+iPad foundation.
+The roadmap is intentionally coarse-grained. Authenticity work is grouped by project-scale outcomes rather than tiny sub-phases.
 
-## Phase 2 — Behavioral + Visual Reconstruction ✅
-Original/remastered states, special dots, four bug personalities, pathfinding, audio, first wall-atlas integration.
+## Phase 1 — Authentic Runtime ✅
+Recovered maze parser/CRC, topology, wraps, player movement, original corpus, first assets, and the native macOS+iPadOS runtime foundation.
 
-## Phase 2.1.x — Stabilization + OG Presentation ✅
-Pooled audio, incremental rendering, opening/menu/options/pause, collision fixes, automatic progression, red AquaDot spin, same-side wrap stabilization.
+## Phase 2 — Gameplay + Visual Reconstruction ✅
+Core gameplay systems, pathfinding, recovered art/audio integration, Original/Remastered presentation modes, and the Phase 2.1 stabilization line.
 
-## Phase 3 — Complete Content + Authenticity 🔥 CURRENT
+## Phase 3 — Campaign + Runtime Completion ✅
+Persistent campaign lifecycle, recovered random level-selection structure, save/resume, progression, high-score tables, Game Over/tween presentation, controller/runtime closure, and campaign audits.
 
-### Phase 3A — Campaign authenticity foundation ✅ this build
+## Phase 4 — Authenticity Closure 🔥 CURRENT
+One sustained binary-backed pass over the remaining gameplay and presentation debt.
 
-- Game Over at zero lives;
-- `(Bonus + Skill) × Multiplier` level accounting;
-- recovered tween-level and Game Over presentation assets;
-- beginning-of-level auto-save/resume across launches;
-- post-completion next-level checkpointing;
-- durable Today’s Best / Best Scores Ever tables;
-- 205-level campaign audit;
-- deeper `_drawMazePiece` atlas forensics.
+Completed or integrated during Phase 4:
+- original solid-wall rendering architecture;
+- executable-recovered Skill scoring;
+- high-resolution player, bug, collectible and menu remasters;
+- Protector/Mantis/Hermit recovered state machines;
+- original eight-strategy ordinary roster;
+- Neon restored as an appearance wrapper rather than a ninth AI personality;
+- Reaper restored as the special Night enemy path;
+- shared enemy warp-style factors recovered and integrated;
+- infection/cure propagation topology restored as per-dot cardinal waves;
+- provenance and regression tests kept beside each recovered behavior.
 
-### Phase 3B — renderer + gameplay fidelity NEXT
+Remaining Phase 4 closure boundaries are explicit rather than hidden: legacy absolute velocity units are translated onto the modern fixed-step scale, deterministic Revival RNG is not libc-rand bitstream-identical, some presentation and lower-level AI sub-choosers remain graph-level adapters, and a small set of timing envelopes still need stronger binary evidence.
 
-- decode the exact four-way `mazePieceType[4]` / `mazePieceIndex[4]` solid-wall selection path;
-- add visual comparison/reference tooling for Original mode;
-- reconstruct Protector, Mantis, Hermit and Neon so all eight guide-documented bug types exist;
-- reconstruct infection/sprout/cure systems from MazeSprouts/MazeDots evidence;
-- continue binary matching of speeds, timers, energy and end-level Skill weights;
-- integrate recovered tween-level audio once its runtime mapping is proven.
+## Phase 5 — Release + Platform Hardening 🔧 NEXT
+Full-campaign soak/regression, macOS and iPadOS device testing, controller/touch polish, save compatibility, performance/memory profiling, accessibility, signing/notarization and reproducible release packaging.
 
-### Phase 3C — complete presentation/content pass
-
-- original high-score name-entry flow;
-- final opening/menu/help/scores presentation;
-- broader original background/snow/animated-text integration;
-- campaign-wide soak/regression playthroughs;
-- Retina remaster comparison pass for every recovered visual family.
-
-## Phase 4 — Editor + Release Polish 🧭
-Modern native editor revival, controller/touch polish, accessibility, release packaging, preservation/runtime separation, final documentation/provenance.
+## Phase 6 — Native Editor Revival 🧭 PLANNED
+Modern Swift maze editor using recovered file semantics: geometry, walls, dots, Munch/sprouts, wraps, validation/CRC, preservation-safe import/export and direct play-testing in the runtime.
 
 ## Project rule
 
